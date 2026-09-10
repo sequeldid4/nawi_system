@@ -1,8 +1,15 @@
+import os
 from flask import Flask, redirect, url_for
+from dotenv import load_dotenv
 from app.routes.inspector import inspector_bp
 
+# Load variables from .env
+load_dotenv()
+
 app = Flask(__name__, template_folder='app/templates')
-app.config['SECRET_KEY'] = 'sih26035_devkeyy' # Required for WTForms
+
+# Fetch the key securely, with a fallback just in case
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_fallback_key') 
 
 app.register_blueprint(inspector_bp, url_prefix='/inspector')
 

@@ -1,0 +1,21 @@
+# Security/Environment Variables
+.env
+
+# Virtual Environments
+nawienv/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Databases
+*.db
+*.sqlite3
+instance/
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
