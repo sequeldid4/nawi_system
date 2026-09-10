@@ -1,23 +1,43 @@
-def get_mpe(load, e, accuracy_class='III'):
+def get_mpe(load, e, accuracy_class='III', test_type='initial'):
     """
-    Calculate Maximum Permissible Errors (MPE).
-    Uses verification scale interval (e) and accuracy class.
+    Calculate Maximum Permissible Errors (MPE) based on OIML R-76 Table 6.
+    Uses verification scale interval (e), load, and accuracy class.
     """
+    if e <= 0:
+        return None
+        
     # Calculate number of verification intervals
     m = load / e
+    mpe_multiplier = 0.0
 
-    # If-else lookup rules for Class III (Standard industrial/retail NAWI)
+    # OIML R-76 Class III Limits
     if accuracy_class == 'III':
         if 0 <= m <= 500:
-            return 1.0 * e
+            mpe_multiplier = 0.5
         elif 500 < m <= 2000:
-            return 2.0 * e
+            mpe_multiplier = 1.0
         elif 2000 < m <= 10000:
-            return 3.0 * e
-        return None
+            mpe_multiplier = 1.5
+        else:
+            return None # Out of bounds for Class III
+            
+    # OIML R-76 Class II Limits (Adding this since it's a common SIH requirement)
+    elif accuracy_class == 'II':
+        if 0 <= m <= 5000:
+            mpe_multiplier = 0.5
+        elif 5000 < m <= 20000:
+            mpe_multiplier = 1.0
+        elif 20000 < m <= 100000:
+            mpe_multiplier = 1.5
+        else:
+            return None
 
-    # Placeholder for Classes I, II, and IIII
-    return None
+    # In-service field inspections generally double the initial MPE limits
+    if test_type == 'in-service':
+        mpe_multiplier *= 2
+
+    return mpe_multiplier * e
+
 
 def check_pass_fail(actual_weight, displayed_weight, mpe):
     """
@@ -25,21 +45,3 @@ def check_pass_fail(actual_weight, displayed_weight, mpe):
     """
     error = abs(displayed_weight - actual_weight)
     return "PASS" if error <= mpe else "FAIL"
-
-if __name__ == "__main__":
-    # Terminal test case: 1000g load, 1g verification scale interval (e)
-    test_load = 1000
-    e_value = 1
-
-    mpe_limit = get_mpe(test_load, e_value, 'III')
-
-    print(f"Calculated MPE: {mpe_limit}g")
-
-    # Simulate reading a live weight of 999g (1g error)
-    result_1 = check_pass_fail(test_load, 999, mpe_limit)
-    print(f"Reading 999g (1g error): {result_1}")
-
-    # Simulate reading a live weight of 997g (3g error)
-    result_2 = check_pass_fail(test_load, 997, mpe_limit)
-    print(f"Reading 997g (3g error): {result_2}")
-

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weighing Test - SIH26035</title>
+    <style>
+        body { font-family: sans-serif; background: #0f2027; color: white; padding: 40px; }
+        .container { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 8px; max-width: 500px; }
+        .form-group { margin-bottom: 15px; }
+        input { padding: 8px; width: 100%; box-sizing: border-box; }
+        button { padding: 10px 20px; cursor: pointer; }
+        .result { margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 4px; }
+        .pass { color: #4ade80; font-weight: bold; }
+        .fail { color: #f87171; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Standard Weighing Test</h2>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.e_value.label }}<br>
+                {{ form.e_value() }}
+            </div>
+            <div class="form-group">
+                {{ form.test_load.label }}<br>
+                {{ form.test_load() }}
+            </div>
+            <div class="form-group">
+                {{ form.displayed_weight.label }}<br>
+                {{ form.displayed_weight() }}
+            </div>
+            {{ form.submit() }}
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <p>Calculated MPE: <strong>&plusmn;{{ mpe }}g</strong></p>
+            <p>Status: <span class="{{ result | lower }}">{{ result }}</span></p>
+        </div>
+        {% endif %}
+
+        <br>
+        <a href="{{ url_for('inspector.dashboard') }}" style="color: #60a5fa;">&larr; Back to Dashboard</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIH26035 - Inspector Dashboard</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 40px;
+            width: 80%;
+            max-width: 900px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .test-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.2s;
+            cursor: pointer;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .test-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-panel">
+        <h2>Legal Metrology Dashboard</h2>
+        <p>Select a mandatory test workflow to begin verification:</p>
+        
+        <div class="test-grid">
+            <div class="test-card">
+                <h3>Repeatability Test</h3>
+                <p>Verify consistency across multiple weighings.</p>
+            </div>
+            <div class="test-card">
+                <h3>Eccentricity Test</h3>
+                <p>Corner loading limits evaluation.</p>
+            </div>
+            
+            <!-- Linked Weighing Test Card -->
+            <a href="{{ url_for('inspector.weighing_test') }}" style="text-decoration: none; color: inherit;">
+                <div class="test-card">
+                    <h3>Weighing Test</h3>
+                    <p>Standard scale interval accuracy.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
