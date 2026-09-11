@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +15,7 @@
             justify-content: center;
             align-items: center;
         }
-
+        
         .glass-panel {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(15px);
@@ -29,7 +28,6 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* Updated to Flexbox for forced horizontal alignment */
         .test-grid {
             display: flex;
             flex-direction: row;
@@ -39,12 +37,11 @@
             width: 100%;
         }
 
-        /* Forces anchor tags to act as equal-width columns */
         .test-grid a {
             flex: 1;
             text-decoration: none;
             color: inherit;
-            display: block;
+            display: block; 
         }
 
         .test-card {
@@ -63,37 +60,57 @@
             transform: translateY(-5px);
             background: rgba(255, 255, 255, 0.1);
         }
+
+        /* New CSS to lock the buttons visually and functionally */
+        .disabled-link {
+            pointer-events: none;
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
     </style>
 </head>
-
 <body>
     <div class="glass-panel">
         <h2>Legal Metrology Dashboard</h2>
+        
+        <!-- Dynamic Instrument Profile Setup Banner -->
+        <a href="{{ url_for('inspector.instrument_profile') }}" style="text-decoration: none; color: inherit; display: block; margin-bottom: 20px;">
+            <div class="test-card" style="background: rgba(74, 222, 128, 0.2); border-color: rgba(74, 222, 128, 0.4);">
+                {% if profile_exists %}
+                    <h3>Edit Instrument Profile</h3>
+                    <p>Update manufacturer, specs, and metrological data.</p>
+                {% else %}
+                    <h3>1. Setup Instrument Profile</h3>
+                    <p>Register manufacturer, specs, and metrological data before testing.</p>
+                {% endif %}
+            </div>
+        </a>
+
         <p>Select a mandatory test workflow to begin verification:</p>
-
+        
+        <!-- Test Grid with Jinja2 Conditional Logic -->
         <div class="test-grid">
-            <a href="{{ url_for('inspector.weighing_test') }}">
+            <a href="{{ url_for('inspector.repeatability_test') }}" class="{% if not profile_exists %}disabled-link{% endif %}">
                 <div class="test-card">
-                    <h3>Weighing Test</h3>
-                    <p>Standard scale interval accuracy.</p>
-                </div>
-            </a>
-
-            <a href="{{ url_for('inspector.repeatability_test') }}">
-                <div class="test-card">
-                    <h3>Repeatability Test</h3>
+                    <h3>Repeatability Test {% if not profile_exists %}🔒{% endif %}</h3>
                     <p>Verify consistency across multiple weighings.</p>
                 </div>
             </a>
-
-            <a href="{{ url_for('inspector.eccentricity_test') }}">
+            
+            <a href="{{ url_for('inspector.eccentricity_test') }}" class="{% if not profile_exists %}disabled-link{% endif %}">
                 <div class="test-card">
-                    <h3>Eccentricity Test</h3>
+                    <h3>Eccentricity Test {% if not profile_exists %}🔒{% endif %}</h3>
                     <p>Corner loading limits evaluation.</p>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('inspector.weighing_test') }}" class="{% if not profile_exists %}disabled-link{% endif %}">
+                <div class="test-card">
+                    <h3>Weighing Test {% if not profile_exists %}🔒{% endif %}</h3>
+                    <p>Standard scale interval accuracy.</p>
                 </div>
             </a>
         </div>
     </div>
 </body>
-
 </html>
