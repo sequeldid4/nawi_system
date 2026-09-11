@@ -45,3 +45,22 @@ def check_pass_fail(actual_weight, displayed_weight, mpe):
     """
     error = abs(displayed_weight - actual_weight)
     return "PASS" if error <= mpe else "FAIL"
+
+def check_repeatability(readings, mpe):
+    """
+    OIML R-76: The difference between the maximum and minimum 
+    readings for the same load must not exceed the absolute value of the MPE.
+    """
+    if not readings: return "FAIL"
+    max_val = max(readings)
+    min_val = min(readings)
+    return "PASS" if (max_val - min_val) <= mpe else "FAIL"
+
+def check_eccentricity(actual_weight, readings, mpe):
+    """
+    OIML R-76: The error at any off-center position must not exceed the MPE.
+    """
+    for r in readings:
+        if abs(r - actual_weight) > mpe:
+            return "FAIL"
+    return "PASS"

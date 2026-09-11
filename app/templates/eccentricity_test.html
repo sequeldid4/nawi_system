@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Weighing Test - SIH26035</title>
+    <title>Eccentricity Test - SIH26035</title>
     <style>
         body {
             font-family: sans-serif;
@@ -55,7 +55,7 @@
 
 <body>
     <div class="container">
-        <h2>Standard Weighing Test</h2>
+        <h2>Eccentricity Test</h2>
         <form method="POST">
             {{ form.hidden_tag() }}
             <div class="form-group">
@@ -63,18 +63,13 @@
                 {{ form.accuracy_class(style="padding: 8px; width: 100%; box-sizing: border-box; background:
                 rgba(255,255,255,0.9); border: none; border-radius: 4px;") }}
             </div>
-            <div class="form-group">
-                {{ form.e_value.label }}<br>
-                {{ form.e_value() }}
-            </div>
-            <div class="form-group">
-                {{ form.test_load.label }}<br>
-                {{ form.test_load() }}
-            </div>
-            <div class="form-group">
-                {{ form.displayed_weight.label }}<br>
-                {{ form.displayed_weight() }}
-            </div>
+            <div class="form-group">{{ form.e_value.label }}<br>{{ form.e_value() }}</div>
+            <div class="form-group">{{ form.test_load.label }}<br>{{ form.test_load() }}</div>
+            <div class="form-group">{{ form.center.label }}<br>{{ form.center() }}</div>
+            <div class="form-group">{{ form.front_left.label }}<br>{{ form.front_left() }}</div>
+            <div class="form-group">{{ form.front_right.label }}<br>{{ form.front_right() }}</div>
+            <div class="form-group">{{ form.back_left.label }}<br>{{ form.back_left() }}</div>
+            <div class="form-group">{{ form.back_right.label }}<br>{{ form.back_right() }}</div>
             {{ form.submit() }}
         </form>
 
@@ -84,9 +79,7 @@
             <p>Status: <span class="{{ result | lower }}">{{ result }}</span></p>
         </div>
         {% endif %}
-
-        <br>
-        <a href="{{ url_for('inspector.dashboard') }}" style="color: #60a5fa;">&larr; Back to Dashboard</a>
+        <br><a href="{{ url_for('inspector.dashboard') }}" style="color: #60a5fa;">&larr; Back to Dashboard</a>
     </div>
 </body>
 
