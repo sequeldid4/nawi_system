@@ -1,52 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Instrument Profile - SIH26035</title>
-    <style>
-        body { font-family: sans-serif; background: #0f2027; color: white; padding: 40px; }
-        .container { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 8px; max-width: 600px; margin: 0 auto; }
-        .form-section { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .form-section h3 { margin-top: 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        input, select, textarea { padding: 8px; width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.9); border: none; border-radius: 4px; }
-        button { padding: 12px 20px; width: 100%; cursor: pointer; background: #4ade80; border: none; border-radius: 4px; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Instrument Profile Setup</h2>
-        <p>Log the physical characteristics of the NAWI before conducting field tests.</p>
+{% extends "base.html" %}
+
+{% block title %}Instrument Profile - SIH26035{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2>Instrument Profile Setup</h2>
+</div>
+
+<div class="stack" class="stack max-w-lg">
+    <p>Log the physical characteristics of the NAWI before conducting field tests.</p>
+    
+    <form method="POST" class="stack">
+        {{ form.hidden_tag() }}
         
-        <form method="POST">
-            {{ form.hidden_tag() }}
-            
-            <div class="form-section">
-                <h3>Manufacturer Details</h3>
-                <div class="form-group">{{ form.mfg_name.label }}<br>{{ form.mfg_name() }}</div>
-                <div class="form-group">{{ form.mfg_address.label }}<br>{{ form.mfg_address(rows=3) }}</div>
+        <div class="card card-accent-top">
+            <h3 class="mb-6 uppercase text-lg">Manufacturer Details</h3>
+            <div class="stack">
+                <div>
+                    <label class="field-label">{{ form.mfg_name.label.text }}</label>
+                    {{ form.mfg_name(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.mfg_address.label.text }}</label>
+                    {{ form.mfg_address(class="textarea-field", rows=3) }}
+                </div>
             </div>
+        </div>
 
-            <div class="form-section">
-                <h3>Instrument Specs</h3>
-                <div class="form-group">{{ form.model_num.label }}<br>{{ form.model_num() }}</div>
-                <div class="form-group">{{ form.serial_num.label }}<br>{{ form.serial_num() }}</div>
-                <div class="form-group">{{ form.scale_type.label }}<br>{{ form.scale_type() }}</div>
+        <div class="card">
+            <h3 class="mb-6 uppercase text-lg">Instrument Specs</h3>
+            <div class="stack">
+                <div>
+                    <label class="field-label">{{ form.model_num.label.text }}</label>
+                    {{ form.model_num(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.serial_num.label.text }}</label>
+                    {{ form.serial_num(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.scale_type.label.text }}</label>
+                    {{ form.scale_type(class="select-field") }}
+                </div>
             </div>
+        </div>
 
-            <div class="form-section">
-                <h3>Metrological Data</h3>
-                <div class="form-group">{{ form.accuracy_class.label }}<br>{{ form.accuracy_class() }}</div>
-                <div class="form-group">{{ form.max_capacity.label }}<br>{{ form.max_capacity() }}</div>
-                <div class="form-group">{{ form.min_capacity.label }}<br>{{ form.min_capacity() }}</div>
-                <div class="form-group">{{ form.e_value.label }}<br>{{ form.e_value() }}</div>
-                <div class="form-group">{{ form.d_value.label }}<br>{{ form.d_value() }}</div>
+        <div class="card">
+            <h3 class="mb-6 uppercase text-lg">Metrological Data</h3>
+            <div class="grid-2">
+                <div>
+                    <label class="field-label">{{ form.accuracy_class.label.text }}</label>
+                    {{ form.accuracy_class(class="select-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.max_capacity.label.text }}</label>
+                    {{ form.max_capacity(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.min_capacity.label.text }}</label>
+                    {{ form.min_capacity(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.e_value.label.text }}</label>
+                    {{ form.e_value(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.d_value.label.text }}</label>
+                    {{ form.d_value(class="input-field") }}
+                </div>
             </div>
-            
-            {{ form.submit() }}
-        </form>
-        <br>
-        <a href="{{ url_for('inspector.dashboard') }}" style="color: #60a5fa; text-decoration: none;">&larr; Back to Dashboard</a>
+        </div>
+        
+        <div class="mt-4">
+            {{ form.submit(class="btn btn-primary btn-full") }}
+        </div>
+    </form>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('inspector.dashboard') }}" class="btn btn-ghost">&larr; Back to Dashboard</a>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

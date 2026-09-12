@@ -1,85 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Repeatability Test - SIH26035</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            background: #0f2027;
-            color: white;
-            padding: 40px;
-        }
+{% block title %}Repeatability Test - SIH26035{% endblock %}
 
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 8px;
-            max-width: 500px;
-        }
+{% block content %}
+<div class="section-header">
+    <h2>Repeatability Test</h2>
+</div>
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        input {
-            padding: 8px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
-        }
-
-        .pass {
-            color: #4ade80;
-            font-weight: bold;
-        }
-
-        .fail {
-            color: #f87171;
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <h2>Repeatability Test</h2>
-        <form method="POST">
-            {{ form.hidden_tag() }}
-            <div class="form-group">
-                {{ form.accuracy_class.label }}<br>
-                {{ form.accuracy_class(style="padding: 8px; width: 100%; box-sizing: border-box; background:
-                rgba(255,255,255,0.9); border: none; border-radius: 4px;") }}
+<div class="stack" class="stack max-w-lg">
+    <form method="POST" class="stack">
+        {{ form.hidden_tag() }}
+        
+        <div class="card card-accent-top">
+            <h3 class="mb-6 uppercase">Instrument Params</h3>
+            <div class="grid-2">
+                <div>
+                    <label class="field-label">{{ form.accuracy_class.label.text }}</label>
+                    {{ form.accuracy_class(class="select-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.e_value.label.text }}</label>
+                    {{ form.e_value(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.test_load.label.text }}</label>
+                    {{ form.test_load(class="input-field") }}
+                </div>
             </div>
-            <div class="form-group">{{ form.e_value.label }}<br>{{ form.e_value() }}</div>
-            <div class="form-group">{{ form.test_load.label }}<br>{{ form.test_load() }}</div>
-            <div class="form-group">{{ form.reading_1.label }}<br>{{ form.reading_1() }}</div>
-            <div class="form-group">{{ form.reading_2.label }}<br>{{ form.reading_2() }}</div>
-            <div class="form-group">{{ form.reading_3.label }}<br>{{ form.reading_3() }}</div>
-            {{ form.submit() }}
-        </form>
-
-        {% if result %}
-        <div class="result">
-            <p>Calculated MPE: <strong>&plusmn;{{ mpe }}g</strong></p>
-            <p>Max Difference Between Readings: <strong>{{ max_diff }}g</strong></p>
-            <p>Status: <span class="{{ result | lower }}">{{ result }}</span></p>
         </div>
-        {% endif %}
-        <br><a href="{{ url_for('inspector.dashboard') }}" style="color: #60a5fa;">&larr; Back to Dashboard</a>
-    </div>
-</body>
+        
+        <div class="card">
+            <h3 class="mb-6 uppercase">Readings</h3>
+            <div class="grid-3">
+                <div>
+                    <label class="field-label">{{ form.reading_1.label.text }}</label>
+                    {{ form.reading_1(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.reading_2.label.text }}</label>
+                    {{ form.reading_2(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.reading_3.label.text }}</label>
+                    {{ form.reading_3(class="input-field") }}
+                </div>
+            </div>
+        </div>
 
-</html>
+        <div class="mt-4">
+            {{ form.submit(class="btn btn-primary btn-full") }}
+        </div>
+    </form>
+
+    {% if result %}
+    <div class="result-panel {% if result == 'PASS' %}pass{% else %}fail{% endif %} stack">
+        <h3 class="uppercase text-sm font-bold">Result</h3>
+        <div class="grid-2">
+            <div>
+                <p>Calculated MPE: <span class="result-value">&plusmn;{{ mpe }}g</span></p>
+            </div>
+            <div>
+                <p>Max Diff: <span class="result-value">{{ max_diff }}g</span></p>
+            </div>
+        </div>
+        <p>Status: <span class="badge {% if result == 'PASS' %}badge-pass{% else %}badge-fail{% endif %} badge-lg">{{ result }}</span></p>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{{ url_for('inspector.dashboard') }}" class="btn btn-ghost">&larr; Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

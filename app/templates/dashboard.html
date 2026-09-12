@@ -1,116 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIH26035 - Inspector Dashboard</title>
-    <style>
-        body {
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 40px;
-            width: 90%;
-            max-width: 1000px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
+{% extends "base.html" %}
 
-        .test-grid {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            gap: 20px;
-            margin-top: 20px;
-            width: 100%;
-        }
+{% block title %}SIH26035 - Inspector Dashboard{% endblock %}
 
-        .test-grid a {
-            flex: 1;
-            text-decoration: none;
-            color: inherit;
-            display: block; 
-        }
-
-        .test-card {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.2s;
-            cursor: pointer;
-            height: 100%;
-            box-sizing: border-box;
-        }
-
-        .test-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* New CSS to lock the buttons visually and functionally */
-        .disabled-link {
-            pointer-events: none;
-            opacity: 0.4;
-            filter: grayscale(100%);
-        }
-    </style>
-</head>
-<body>
-    <div class="glass-panel">
-        <h2>Legal Metrology Dashboard</h2>
-        
-        <!-- Dynamic Instrument Profile Setup Banner -->
-        <a href="{{ url_for('inspector.instrument_profile') }}" style="text-decoration: none; color: inherit; display: block; margin-bottom: 20px;">
-            <div class="test-card" style="background: rgba(74, 222, 128, 0.2); border-color: rgba(74, 222, 128, 0.4);">
-                {% if profile_exists %}
-                    <h3>Edit Instrument Profile</h3>
-                    <p>Update manufacturer, specs, and metrological data.</p>
-                {% else %}
-                    <h3>1. Setup Instrument Profile</h3>
-                    <p>Register manufacturer, specs, and metrological data before testing.</p>
-                {% endif %}
-            </div>
-        </a>
-
-        <p>Select a mandatory test workflow to begin verification:</p>
-        
-        <!-- Test Grid with Jinja2 Conditional Logic -->
-        <div class="test-grid">
-            <a href="{{ url_for('inspector.repeatability_test') }}" class="{% if not profile_exists %}disabled-link{% endif %}">
-                <div class="test-card">
-                    <h3>Repeatability Test {% if not profile_exists %}🔒{% endif %}</h3>
-                    <p>Verify consistency across multiple weighings.</p>
-                </div>
-            </a>
-            
-            <a href="{{ url_for('inspector.eccentricity_test') }}" class="{% if not profile_exists %}disabled-link{% endif %}">
-                <div class="test-card">
-                    <h3>Eccentricity Test {% if not profile_exists %}🔒{% endif %}</h3>
-                    <p>Corner loading limits evaluation.</p>
-                </div>
-            </a>
-            
-            <a href="{{ url_for('inspector.weighing_test') }}" class="{% if not profile_exists %}disabled-link{% endif %}">
-                <div class="test-card">
-                    <h3>Weighing Test {% if not profile_exists %}🔒{% endif %}</h3>
-                    <p>Standard scale interval accuracy.</p>
-                </div>
-            </a>
-        </div>
+{% block content %}
+<!-- Sub-header metadata bar -->
+<div class="mb-4" style="border-bottom: var(--border-width) solid var(--border); padding-bottom: 0.5rem; display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span class="badge badge-warn">DIRECTIVE 2014/31/EU</span> 
+        OIML R-76-1:2006 (E) METROLOGICAL FRAMEWORK
     </div>
-</body>
-</html>
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="display: inline-block; width: 10px; height: 10px; background-color: var(--pass); border: 1px solid var(--border);"></span>
+        SESSION TOKEN: AUTH-EU-7709-X4
+    </div>
+</div>
+
+<!-- Main Titles -->
+<div class="mb-8">
+    <div class="text-sm font-bold uppercase mb-2" style="color: #555;">National Verification Registry • Legal Inspection Terminal</div>
+    <h1 style="font-size: 2.5rem; font-weight: 900; text-transform: uppercase; line-height: 1; margin: 0.5rem 0;">Legal Metrology Verification</h1>
+    <div class="text-sm font-bold uppercase mt-2">Non-Automatic Weighing Instrument (NAWI) • Class I / II / III / IIII Field Conformity</div>
+</div>
+
+<div class="stack">
+    <!-- Dynamic Instrument Profile Setup Banner -->
+    <a href="{{ url_for('inspector.instrument_profile') }}" class="card card-accent-top" style="background-color: var(--header-bg); color: var(--surface);">
+        {% if profile_exists %}
+            <h3 style="color: var(--accent);">01. EDIT METROLOGICAL PROFILE</h3>
+            <p>Update verification scale interval, max capacity limits, load receptor geometry, and baseline certificate metadata.</p>
+        {% else %}
+            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                <div style="font-size: 3rem; font-weight: 900; color: var(--accent); line-height: 1;">01</div>
+                <div>
+                    <span class="badge badge-warn mb-4">CURRENT PHASE</span><span class="badge" style="background-color: transparent; color: var(--surface); border-color: var(--surface); margin-left: 0.5rem;">MANDATORY PRE-REQUISITE</span>
+                    <h3 style="margin-bottom: 0.5rem;">INSTRUMENT INITIALIZATION & PROFILE SETUP</h3>
+                    <p>Configure verification scale interval (e), max capacity limits, load receptor geometry, and baseline certificate metadata.</p>
+                </div>
+            </div>
+        {% endif %}
+    </a>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: var(--border-width) solid var(--border); padding-bottom: 0.5rem; margin-top: 1rem;">
+        <p class="font-bold uppercase text-sm" style="margin: 0;">Select Test Workflow</p>
+        <p class="font-bold uppercase text-sm" style="margin: 0;">{% if profile_exists %}3 ACTIVE • 0 LOCKED{% else %}0 ACTIVE • 3 LOCKED{% endif %}</p>
+    </div>
+
+    <!-- Test Grid with Jinja2 Conditional Logic -->
+    <div class="grid-3">
+        <a {% if profile_exists %}href="{{ url_for('inspector.repeatability_test') }}"{% endif %} class="card {% if not profile_exists %}card-locked{% endif %}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span class="badge">STAGE 02</span>
+                <span class="badge {% if profile_exists %}badge-pass{% endif %}" style="font-size: 0.65rem;">{% if profile_exists %}READY{% else %}LOCKED{% endif %}</span>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">02. REPEATABILITY (§A.4.4)</h3>
+            <p class="text-sm font-bold" style="color: #444;">Execute 3 series of consecutive weighings at ~0.8 Max. Compute maximum absolute error divergence against prescribed MPE tolerance envelopes.</p>
+            <div class="btn btn-full mt-4" style="background-color: var(--surface);">{% if profile_exists %}ENTER READINGS &rarr;{% else %}🔒 REQUIRES PROFILE{% endif %}</div>
+        </a>
+        
+        <a {% if profile_exists %}href="{{ url_for('inspector.eccentricity_test') }}"{% endif %} class="card {% if not profile_exists %}card-locked{% endif %}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span class="badge">STAGE 03</span>
+                <span class="badge {% if profile_exists %}badge-pass{% endif %}" style="font-size: 0.65rem;">{% if profile_exists %}READY{% else %}LOCKED{% endif %}</span>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">03. ECCENTRIC LOADING (§A.4.7)</h3>
+            <p class="text-sm font-bold" style="color: #444;">Evaluate 5-point spatial load distribution across center, front-left, front-right, back-left, and back-right quadrants with standard 1/3 Max test loads.</p>
+            <div class="btn btn-full mt-4" style="background-color: var(--surface);">{% if profile_exists %}RUN ECCENTRICITY &rarr;{% else %}🔒 REQUIRES PROFILE{% endif %}</div>
+        </a>
+        
+        <a {% if profile_exists %}href="{{ url_for('inspector.weighing_test') }}"{% endif %} class="card {% if not profile_exists %}card-locked{% endif %}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span class="badge">STAGE 04</span>
+                <span class="badge {% if profile_exists %}badge-pass{% endif %}" style="font-size: 0.65rem;">{% if profile_exists %}READY{% else %}LOCKED{% endif %}</span>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">04. WEIGHING PERFORMANCE (§A.4.4.1)</h3>
+            <p class="text-sm font-bold" style="color: #444;">Ascending and descending load series across 5 defined increments. Real-time delta tracking against dynamic multi-tier Maximum Permissible Error.</p>
+            <div class="btn btn-full mt-4" style="background-color: var(--surface);">{% if profile_exists %}START TEST &rarr;{% else %}🔒 REQUIRES PROFILE{% endif %}</div>
+        </a>
+    </div>
+</div>
+{% endblock %}
