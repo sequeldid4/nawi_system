@@ -4,8 +4,8 @@
 
 {% block content %}
 <!-- Sub-header metadata bar -->
-<div class="mb-4" style="border-bottom: var(--border-width) solid var(--border); padding-bottom: 0.5rem; display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
-    <div style="display: flex; align-items: center; gap: 0.5rem;">
+<div class="mb-4" style="border-bottom: var(--border-width) solid var(--border); padding-bottom: 0.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
         <span class="badge badge-warn">DIRECTIVE 2014/31/EU</span> 
         OIML R-76-1:2006 (E) METROLOGICAL FRAMEWORK
     </div>
@@ -18,7 +18,7 @@
 <!-- Main Titles -->
 <div class="mb-8">
     <div class="text-sm font-bold uppercase mb-2" style="color: #555;">National Verification Registry • Legal Inspection Terminal</div>
-    <h1 style="font-size: 2.5rem; font-weight: 900; text-transform: uppercase; line-height: 1; margin: 0.5rem 0;">Legal Metrology Verification</h1>
+    <h1 style="font-size: clamp(1.75rem, 6vw, 2.5rem); font-weight: 900; text-transform: uppercase; line-height: 1.1; margin: 0.5rem 0;">Legal Metrology Verification</h1>
     <div class="text-sm font-bold uppercase mt-2">Non-Automatic Weighing Instrument (NAWI) • Class I / II / III / IIII Field Conformity</div>
 </div>
 
@@ -29,20 +29,23 @@
             <h3 style="color: var(--accent);">01. EDIT METROLOGICAL PROFILE</h3>
             <p>Update verification scale interval, max capacity limits, load receptor geometry, and baseline certificate metadata.</p>
         {% else %}
-            <div style="display: flex; gap: 1rem; align-items: flex-start;">
-                <div style="font-size: 3rem; font-weight: 900; color: var(--accent); line-height: 1;">01</div>
-                <div>
-                    <span class="badge badge-warn mb-4">CURRENT PHASE</span><span class="badge" style="background-color: transparent; color: var(--surface); border-color: var(--surface); margin-left: 0.5rem;">MANDATORY PRE-REQUISITE</span>
-                    <h3 style="margin-bottom: 0.5rem;">INSTRUMENT INITIALIZATION & PROFILE SETUP</h3>
-                    <p>Configure verification scale interval (e), max capacity limits, load receptor geometry, and baseline certificate metadata.</p>
+            <div style="display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap;">
+                <div style="font-size: clamp(2rem, 8vw, 3rem); font-weight: 900; color: var(--accent); line-height: 1;">01</div>
+                <div style="flex: 1; min-width: 200px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                        <span class="badge badge-warn">CURRENT PHASE</span>
+                        <span class="badge" style="background-color: transparent; color: var(--surface); border-color: var(--surface);">MANDATORY PRE-REQUISITE</span>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem; font-size: clamp(1.1rem, 4vw, 1.5rem);">INSTRUMENT INITIALIZATION & PROFILE SETUP</h3>
+                    <p style="font-size: 0.95rem;">Configure verification scale interval (e), max capacity limits, load receptor geometry, and baseline certificate metadata.</p>
                 </div>
             </div>
         {% endif %}
     </a>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: var(--border-width) solid var(--border); padding-bottom: 0.5rem; margin-top: 1rem;">
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: space-between; align-items: center; border-bottom: var(--border-width) solid var(--border); padding-bottom: 0.5rem; margin-top: 1rem;">
         <p class="font-bold uppercase text-sm" style="margin: 0;">Select Test Workflow</p>
-        <p class="font-bold uppercase text-sm" style="margin: 0;">{% if profile_exists %}3 ACTIVE • 0 LOCKED{% else %}0 ACTIVE • 3 LOCKED{% endif %}</p>
+        <p class="font-bold uppercase text-sm" style="margin: 0;">{% if profile_exists %}3 ACTIVE • 1 LOCKED{% else %}0 ACTIVE • 4 LOCKED{% endif %}</p>
     </div>
 
     <!-- Test Grid with Jinja2 Conditional Logic -->
@@ -50,31 +53,59 @@
         <a {% if profile_exists %}href="{{ url_for('inspector.repeatability_test') }}"{% endif %} class="card {% if not profile_exists %}card-locked{% endif %}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <span class="badge">STAGE 02</span>
-                <span class="badge {% if profile_exists %}badge-pass{% endif %}" style="font-size: 0.65rem;">{% if profile_exists %}READY{% else %}LOCKED{% endif %}</span>
+                <span class="badge {% if session.get('test_results', {}).get('repeatability') %}badge-pass{% elif profile_exists %}badge-warn{% endif %}" style="font-size: 0.65rem;">
+                    {% if session.get('test_results', {}).get('repeatability') %}COMPLETED
+                    {% elif profile_exists %}READY
+                    {% else %}LOCKED{% endif %}
+                </span>
             </div>
             <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">02. REPEATABILITY (§A.4.4)</h3>
-            <p class="text-sm font-bold" style="color: #444;">Execute 3 series of consecutive weighings at ~0.8 Max. Compute maximum absolute error divergence against prescribed MPE tolerance envelopes.</p>
+            <p class="text-sm font-bold" style="color: #444;">Execute 3 series of consecutive weighings at ~0.8 Max.</p>
             <div class="btn btn-full mt-4" style="background-color: var(--surface);">{% if profile_exists %}ENTER READINGS &rarr;{% else %}🔒 REQUIRES PROFILE{% endif %}</div>
         </a>
         
         <a {% if profile_exists %}href="{{ url_for('inspector.eccentricity_test') }}"{% endif %} class="card {% if not profile_exists %}card-locked{% endif %}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <span class="badge">STAGE 03</span>
-                <span class="badge {% if profile_exists %}badge-pass{% endif %}" style="font-size: 0.65rem;">{% if profile_exists %}READY{% else %}LOCKED{% endif %}</span>
+                <span class="badge {% if session.get('test_results', {}).get('eccentricity') %}badge-pass{% elif profile_exists %}badge-warn{% endif %}" style="font-size: 0.65rem;">
+                    {% if session.get('test_results', {}).get('eccentricity') %}COMPLETED
+                    {% elif profile_exists %}READY
+                    {% else %}LOCKED{% endif %}
+                </span>
             </div>
             <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">03. ECCENTRIC LOADING (§A.4.7)</h3>
-            <p class="text-sm font-bold" style="color: #444;">Evaluate 5-point spatial load distribution across center, front-left, front-right, back-left, and back-right quadrants with standard 1/3 Max test loads.</p>
+            <p class="text-sm font-bold" style="color: #444;">Evaluate 5-point spatial load distribution.</p>
             <div class="btn btn-full mt-4" style="background-color: var(--surface);">{% if profile_exists %}RUN ECCENTRICITY &rarr;{% else %}🔒 REQUIRES PROFILE{% endif %}</div>
         </a>
         
         <a {% if profile_exists %}href="{{ url_for('inspector.weighing_test') }}"{% endif %} class="card {% if not profile_exists %}card-locked{% endif %}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <span class="badge">STAGE 04</span>
-                <span class="badge {% if profile_exists %}badge-pass{% endif %}" style="font-size: 0.65rem;">{% if profile_exists %}READY{% else %}LOCKED{% endif %}</span>
+                <span class="badge {% if session.get('test_results', {}).get('weighing') %}badge-pass{% elif profile_exists %}badge-warn{% endif %}" style="font-size: 0.65rem;">
+                    {% if session.get('test_results', {}).get('weighing') %}COMPLETED
+                    {% elif profile_exists %}READY
+                    {% else %}LOCKED{% endif %}
+                </span>
             </div>
-            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">04. WEIGHING PERFORMANCE (§A.4.4.1)</h3>
-            <p class="text-sm font-bold" style="color: #444;">Ascending and descending load series across 5 defined increments. Real-time delta tracking against dynamic multi-tier Maximum Permissible Error.</p>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">04. WEIGHING PERFORMANCE</h3>
+            <p class="text-sm font-bold" style="color: #444;">Ascending and descending load series tracking against dynamic MPE.</p>
             <div class="btn btn-full mt-4" style="background-color: var(--surface);">{% if profile_exists %}START TEST &rarr;{% else %}🔒 REQUIRES PROFILE{% endif %}</div>
+        </a>
+        
+        <!-- Certificate Generation Block -->
+        {% set tests_done = session.get('test_results', {}) | length == 3 %}
+        <a {% if tests_done %}href="{{ url_for('inspector.download_final_certificate') }}"{% endif %} class="card {% if not tests_done %}card-locked{% else %}card-accent-top{% endif %}" {% if not tests_done %}style="pointer-events: none; opacity: 0.7;"{% else %}style="background-color: var(--header-bg); color: var(--surface);"{% endif %}>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span class="badge">STAGE 05</span>
+                <span class="badge {% if tests_done %}badge-pass{% endif %}" style="font-size: 0.65rem;">
+                    {% if tests_done %}READY{% else %}LOCKED{% endif %}
+                </span>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; {% if tests_done %}color: var(--accent);{% endif %}">05. OFFICIAL STAMP & CERTIFICATE</h3>
+            <p class="text-sm font-bold" style="{% if tests_done %}color: #EEE;{% else %}color: #444;{% endif %}">Generate OIML legal metrology conformity certificate and apply cryptographic seal.</p>
+            <div class="btn btn-full mt-4" style="{% if tests_done %}background-color: var(--accent); color: #000;{% else %}background-color: var(--surface);{% endif %}">
+                {% if tests_done %}DOWNLOAD FINAL CERTIFICATE &darr;{% else %}🔒 REQUIRES 3 COMPLETED TESTS{% endif %}
+            </div>
         </a>
     </div>
 </div>

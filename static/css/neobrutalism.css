@@ -415,3 +415,137 @@ td.fail-cell {
 .card-locked {
   pointer-events: none;
 }
+
+/* --- MOBILE RESPONSIVENESS OVERRIDES --- */
+
+/* Flexible Grids to prevent overflow on very small screens */
+.grid-2, .grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)) !important;
+}
+
+/* Allow text inside buttons/cards to wrap */
+.btn {
+  white-space: normal;
+  text-align: center;
+}
+.card {
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  .hide-mobile { 
+    display: none !important; 
+  }
+  
+  .top-bar { 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 0.75rem; 
+    padding: 1rem;
+  }
+  
+  .top-bar-left, .top-bar-right { 
+    width: 100%; 
+    justify-content: space-between; 
+    flex-wrap: wrap; 
+    gap: 0.5rem; 
+  }
+
+  .nawi-logo { 
+    font-size: 1.5rem; 
+  }
+
+  /* Padding adjustments for mobile */
+  .container {
+    padding: 1rem;
+  }
+}
+
+/* --- SIDEBAR LAYOUT --- */
+.app-layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+  align-items: stretch;
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  border-right: var(--border-width) solid var(--border);
+  background-color: var(--bg);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  background-color: var(--bg);
+  overflow-y: auto;
+}
+
+.sidebar-session-card {
+  background-color: var(--border);
+  color: var(--surface);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border: var(--border-width) solid var(--border);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--border);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(0,0,0,0.05);
+  border-color: var(--border);
+}
+
+.sidebar-link.active {
+  background-color: var(--accent);
+  border: 2px solid var(--border);
+  box-shadow: 4px 4px 0px var(--border);
+  transform: translate(-2px, -2px);
+}
+
+.sidebar-status-box {
+  border: 2px solid var(--border);
+  padding: 1rem;
+  font-size: 0.75rem;
+  background-color: var(--surface);
+  margin-top: 2rem;
+}
+
+/* Sidebar Responsive Overrides */
+@media (max-width: 900px) {
+  .app-layout {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid var(--border);
+  }
+  .main-content {
+    padding: 1rem;
+  }
+}

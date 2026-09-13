@@ -68,7 +68,12 @@
     {% endif %}
 
     <div class="mt-4">
-        <a href="{{ url_for('inspector.dashboard') }}" class="btn btn-ghost">&larr; Back to Dashboard</a>
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; width: 100%;">
+        <a href="{{ url_for('inspector.dashboard') }}" class="btn btn-ghost">&larr; Back</a>
+        {% if result %}
+        <a href="{{ url_for('inspector.eccentricity_test') }}" class="btn btn-dark">Next: Eccentricity Test &rarr;</a>
+        {% endif %}
+    </div>
     </div>
 </div>
 {% endblock %}

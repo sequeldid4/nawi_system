@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /media/sequel/DATA/nawi_sys/nawienv
+set -gx VIRTUAL_ENV /media/sequel/DATA1/nawi_sys/nawienv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

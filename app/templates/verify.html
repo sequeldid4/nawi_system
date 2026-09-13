@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Certificate - SIH26035{% endblock %}
+
+{% block content %}
+<div class="card card-accent-top" style="max-width: 600px; margin: 0 auto; text-align: center;">
+    <span class="badge badge-pass mb-4">CERTIFICATE VERIFIED</span>
+    <h2 class="mb-4">Valid Metrology Certificate</h2>
+    <p><strong>Certificate Hash:</strong><br><span style="word-break: break-all; font-size: 0.8rem;">{{ cert_hash }}</span></p>
+    <p class="mt-4">This certificate was cryptographically signed by the SIH26035 Verification Platform.</p>
+    <a href="{{ url_for('inspector.dashboard') }}" class="btn btn-dark mt-4">Go to Dashboard</a>
+</div>
+{% endblock %}

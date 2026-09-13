@@ -1,7 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, redirect, url_for, session, send_file
 from flask_wtf import FlaskForm
 from wtforms import FloatField, SelectField, SubmitField, StringField, TextAreaField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, ValidationError
+from flask import flash
+from app.services.pdf_generator import generate_secure_certificate
 from app.services.oiml_engine import get_mpe, check_pass_fail, check_repeatability, check_eccentricity
 
 inspector_bp = Blueprint('inspector', __name__)
@@ -37,6 +39,17 @@ class InstrumentProfileForm(FlaskForm):
     d_value = FloatField('Actual Scale Interval (d)', validators=[DataRequired()])
     
     submit = SubmitField('Save Profile & Begin Tests')
+
+    def validate_min_capacity(self, field):
+        if self.max_capacity.data is not None and field.data is not None:
+            if field.data >= self.max_capacity.data:
+                raise ValidationError('Min Capacity must be strictly less than Max Capacity.')
+                
+    def validate_d_value(self, field):
+        if self.e_value.data is not None and field.data is not None:
+            if field.data > self.e_value.data:
+                raise ValidationError('Actual Scale Interval (d) cannot be greater than Verification Scale Interval (e).')
+
 
 class WeighingTestForm(FlaskForm):
     accuracy_class = SelectField('Accuracy Class', choices=ACCURACY_CHOICES, validators=[DataRequired()])
@@ -87,7 +100,13 @@ def instrument_profile():
             'e_value': form.e_value.data,
             'd_value': form.d_value.data
         }
+        
         return redirect(url_for('inspector.dashboard'))
+    elif request.method == 'POST':
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}: {error}", 'error')
+
         
     return render_template('instrument_profile.html', form=form)
 
@@ -111,6 +130,11 @@ def repeatability_test():
         if mpe_limit is not None:
             result = check_repeatability(readings, mpe_limit)
             max_diff = round(max(readings) - min(readings), 2)
+            
+            # Save result to session
+            if 'test_results' not in session: session['test_results'] = {}
+            session['test_results']['repeatability'] = result
+            session.modified = True
         else:
             result = "INVALID LOAD FOR THIS CLASS"
             
@@ -135,6 +159,10 @@ def eccentricity_test():
         mpe_limit = get_mpe(load, e, acc_class)
         if mpe_limit is not None:
             result = check_eccentricity(load, readings, mpe_limit)
+            
+            if 'test_results' not in session: session['test_results'] = {}
+            session['test_results']['eccentricity'] = result
+            session.modified = True
         else:
             result = "INVALID LOAD FOR THIS CLASS"
             
@@ -159,7 +187,52 @@ def weighing_test():
         mpe_limit = get_mpe(load, e, acc_class)
         if mpe_limit is not None:
             result = check_pass_fail(load, displayed, mpe_limit)
+            
+            if 'test_results' not in session: session['test_results'] = {}
+            session['test_results']['weighing'] = result
+            session.modified = True
         else:
             result = "INVALID LOAD FOR THIS CLASS"
             
     return render_template('weighing_test.html', form=form, result=result, mpe=mpe_limit)
+
+
+@inspector_bp.route('/download-final-certificate')
+def download_final_certificate():
+    if 'profile' not in session or 'test_results' not in session:
+        
+        return redirect(url_for('inspector.dashboard'))
+    elif request.method == 'POST':
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}: {error}", 'error')
+
+    
+    profile = session['profile']
+    test_results = session['test_results']
+    
+    # Needs all 3 tests
+    if len(test_results) < 3:
+        
+        return redirect(url_for('inspector.dashboard'))
+    elif request.method == 'POST':
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}: {error}", 'error')
+
+        
+    pdf_buffer, hash_string = generate_secure_certificate(profile, test_results, request.host_url)
+    
+    filename = f"{profile.get('serial_num', 'UNKNOWN')}_final_certificate.pdf"
+    
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/pdf'
+    )
+
+@inspector_bp.route('/verify')
+def verify_certificate():
+    cert_hash = request.args.get('cert', 'UNKNOWN')
+    return render_template('verify.html', cert_hash=cert_hash)
