@@ -72,7 +72,7 @@
         <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; width: 100%;">
         <a href="{{ url_for('inspector.dashboard') }}" class="btn btn-ghost">&larr; Back</a>
         {% if result %}
-        <a href="{{ url_for('inspector.dashboard') }}" class="btn btn-dark">Finish & View Certificate &rarr;</a>
+        <a href="{{ next_url }}" class="btn btn-dark">{{ next_label }} &rarr;</a>
         {% endif %}
     </div>
     </div>

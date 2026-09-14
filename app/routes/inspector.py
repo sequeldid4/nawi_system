@@ -1,3 +1,10 @@
+import os
+import hashlib
+from datetime import datetime
+try:
+    from supabase import create_client, Client
+except ImportError:
+    pass
 from flask import Blueprint, render_template, request, redirect, url_for, session, send_file
 from flask_wtf import FlaskForm
 from wtforms import FloatField, SelectField, SubmitField, StringField, TextAreaField
@@ -110,6 +117,29 @@ def instrument_profile():
         
     return render_template('instrument_profile.html', form=form)
 
+
+def get_next_test_info(current_test):
+    from flask import session, url_for
+    results = session.get('test_results', {})
+    
+    # Desired sequence
+    sequence = [
+        ('weighing', 'Weighing Test', 'inspector.weighing_test'),
+        ('repeatability', 'Repeatability Test', 'inspector.repeatability_test'),
+        ('eccentricity', 'Eccentricity Test', 'inspector.eccentricity_test')
+    ]
+    
+    # Check if all 3 are done
+    if len(results) >= 3:
+        return url_for('inspector.dashboard'), "Finish & View Certificate"
+        
+    # Find the next uncompleted test in sequence
+    for test_key, test_name, endpoint in sequence:
+        if test_key not in results and test_key != current_test:
+            return url_for(endpoint), f"Next: {test_name}"
+            
+    return url_for('inspector.dashboard'), "Finish & View Certificate"
+
 @inspector_bp.route('/repeatability-test', methods=['GET', 'POST'])
 def repeatability_test():
     form = RepeatabilityTestForm()
@@ -138,7 +168,9 @@ def repeatability_test():
         else:
             result = "INVALID LOAD FOR THIS CLASS"
             
-    return render_template('repeatability_test.html', form=form, result=result, mpe=mpe_limit, max_diff=max_diff)
+    
+    next_url, next_label = get_next_test_info('repeatability')
+    return render_template('repeatability_test.html', form=form, result=result, mpe=mpe_limit, max_diff=max_diff, next_url=next_url, next_label=next_label)
 
 @inspector_bp.route('/eccentricity-test', methods=['GET', 'POST'])
 def eccentricity_test():
@@ -166,7 +198,9 @@ def eccentricity_test():
         else:
             result = "INVALID LOAD FOR THIS CLASS"
             
-    return render_template('eccentricity_test.html', form=form, result=result, mpe=mpe_limit)
+    
+    next_url, next_label = get_next_test_info('eccentricity')
+    return render_template('eccentricity_test.html', form=form, result=result, mpe=mpe_limit, next_url=next_url, next_label=next_label)
 
 @inspector_bp.route('/weighing-test', methods=['GET', 'POST'])
 def weighing_test():
@@ -194,37 +228,108 @@ def weighing_test():
         else:
             result = "INVALID LOAD FOR THIS CLASS"
             
-    return render_template('weighing_test.html', form=form, result=result, mpe=mpe_limit)
+    
+    next_url, next_label = get_next_test_info('weighing')
+    return render_template('weighing_test.html', form=form, result=result, mpe=mpe_limit, next_url=next_url, next_label=next_label)
 
 
 @inspector_bp.route('/download-final-certificate')
 def download_final_certificate():
-    if 'profile' not in session or 'test_results' not in session:
-        
+    profile = session.get('profile')
+    test_results = session.get('test_results', {})
+    
+    if not profile:
+        flash("No active instrument profile found.", "error")
         return redirect(url_for('inspector.dashboard'))
-    elif request.method == 'POST':
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f"{getattr(form, field).label.text}: {error}", 'error')
-
-    
-    profile = session['profile']
-    test_results = session['test_results']
-    
-    # Needs all 3 tests
+        
     if len(test_results) < 3:
+        missing = [t for t in ['weighing', 'repeatability', 'eccentricity'] if t not in test_results]
+        if missing:
+            flash(f"Cannot generate certificate — {missing[0].capitalize()} test is incomplete.", "error")
+            return redirect(url_for('inspector.dashboard'))
         
-        return redirect(url_for('inspector.dashboard'))
-    elif request.method == 'POST':
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f"{getattr(form, field).label.text}: {error}", 'error')
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    
+    overall_status = 'PASS' if all(res == 'PASS' for res in test_results.values()) else 'FAIL'
+    completed_at = str(datetime.now())
+    cert_number = session.get('cert_number')
+    pdf_hash = session.get('pdf_hash')
+    
+    # Try Supabase route if configured
+    if url and key:
+        try:
+            supabase = create_client(url, key)
+            session_id = session.get('session_id')
+            
+            if session_id:
+                inst_res = supabase.table('instrument_profiles').select('*').eq('session_id', session_id).execute()
+                if inst_res.data: profile = inst_res.data[0]
+                
+                rep_res = supabase.table('repeatability_results').select('*').eq('session_id', session_id).execute()
+                ecc_res = supabase.table('eccentricity_results').select('*').eq('session_id', session_id).execute()
+                weigh_res = supabase.table('weighing_results').select('*').eq('session_id', session_id).execute()
+                
+                if rep_res.data and ecc_res.data and weigh_res.data:
+                    repeatability = rep_res.data[0]
+                    eccentricity = ecc_res.data[0]
+                    weighing = weigh_res.data[0]
+                    
+                    vs_res = supabase.table('verification_sessions').select('*').eq('id', session_id).execute()
+                    if vs_res.data:
+                        overall_status = vs_res.data[0].get('overall_status', overall_status)
+                        completed_at = vs_res.data[0].get('created_at', completed_at)
+                        cert_number = vs_res.data[0].get('cert_number')
+                        pdf_hash = vs_res.data[0].get('pdf_hash')
+                        
+                    if not cert_number:
+                        count_res = supabase.table('verification_sessions').select('id', count='exact').not_.is_('cert_number', 'null').execute()
+                        count = count_res.count if count_res.count is not None else 0
+                        cert_number = f"NAWI-{datetime.now().year}-{str(count + 1).zfill(6)}"
+                        
+                        hash_input = (f"{cert_number}|{profile.get('serial_num', '')}|{overall_status}|{repeatability.get('status', 'FAIL')}|{eccentricity.get('status', 'FAIL')}|{weighing.get('status', 'FAIL')}|{completed_at}").encode('utf-8')
+                        pdf_hash = hashlib.sha256(hash_input).hexdigest()
+                        
+                        supabase.table('verification_sessions').update({
+                            'cert_number': cert_number,
+                            'pdf_hash': pdf_hash
+                        }).eq('id', session_id).execute()
+        except Exception as e:
+            pass
 
+    # Fallback to Flask Session generation
+    repeatability = {'status': test_results.get('repeatability', 'FAIL')}
+    eccentricity = {'status': test_results.get('eccentricity', 'FAIL')}
+    weighing = {'status': test_results.get('weighing', 'FAIL')}
+    discrimination = None
+    
+    if not cert_number:
+        cert_number = session.get('cert_number', f"NAWI-{datetime.now().year}-000001")
+        session['cert_number'] = cert_number
         
-    pdf_buffer, hash_string = generate_secure_certificate(profile, test_results, request.host_url)
+    if not pdf_hash:
+        hash_input = (f"{cert_number}|{profile.get('serial_num', '')}|{overall_status}|{repeatability['status']}|{eccentricity['status']}|{weighing['status']}|{completed_at}").encode('utf-8')
+        pdf_hash = hashlib.sha256(hash_input).hexdigest()
+        session['pdf_hash'] = pdf_hash
+
+    base_url = os.environ.get('BASE_URL', 'http://127.0.0.1:5000')
+    from app.services.pdf_generator import generate_secure_certificate
+    from flask import send_file
     
-    filename = f"{profile.get('serial_num', 'UNKNOWN')}_final_certificate.pdf"
+    pdf_buffer = generate_secure_certificate(
+        cert_number=cert_number,
+        instrument=profile,
+        repeatability=repeatability,
+        eccentricity=eccentricity,
+        weighing=weighing,
+        discrimination=discrimination,
+        overall_status=overall_status,
+        completed_at=completed_at,
+        pdf_hash=pdf_hash,
+        base_url=base_url
+    )
     
+    filename = f"{cert_number}.pdf"
     return send_file(
         pdf_buffer,
         as_attachment=True,
@@ -232,7 +337,27 @@ def download_final_certificate():
         mimetype='application/pdf'
     )
 
-@inspector_bp.route('/verify')
-def verify_certificate():
-    cert_hash = request.args.get('cert', 'UNKNOWN')
-    return render_template('verify.html', cert_hash=cert_hash)
+@inspector_bp.route('/verify/<cert_number>')
+def verify_certificate(cert_number):
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    if not url or not key:
+        return "Supabase configuration missing", 500
+        
+    try:
+        supabase = create_client(url, key)
+        vs_res = supabase.table('verification_sessions').select('*').eq('cert_number', cert_number).execute()
+        
+        if not vs_res.data:
+            return render_template('verify_certificate.html', error="Certificate not found or invalid")
+            
+        session_data = vs_res.data[0]
+        
+        inst_res = supabase.table('instrument_profiles').select('*').eq('session_id', session_data['id']).execute()
+        instrument = inst_res.data[0] if inst_res.data else {}
+        
+        return render_template('verify_certificate.html', session_data=session_data, instrument=instrument)
+        
+    except Exception as e:
+        return f"Database error: {str(e)}", 500
+

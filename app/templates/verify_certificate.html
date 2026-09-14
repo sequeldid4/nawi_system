@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Certificate - SIH26035{% endblock %}
+
+{% block content %}
+<div class="card card-accent-top" style="max-width: 600px; margin: 2rem auto; padding: 2rem;">
+    {% if error %}
+        <span class="badge badge-fail mb-4" style="font-size: 1rem;">ERROR</span>
+        <h2 class="mb-4">Certificate Not Found</h2>
+        <p>{{ error }}</p>
+    {% else %}
+        {% if session_data.overall_status == 'PASS' %}
+            <span class="badge badge-pass mb-4" style="font-size: 1rem;">VERIFIED VALID</span>
+        {% else %}
+            <span class="badge badge-fail mb-4" style="font-size: 1rem;">VERIFIED INVALID</span>
+        {% endif %}
+        
+        <h2 class="mb-2" style="font-weight: 900; text-transform: uppercase;">Official Verification Record</h2>
+        <p class="mb-6" style="color: #666; font-size: 0.9rem;">Certificate Number: <strong>{{ session_data.cert_number }}</strong></p>
+        
+        <div style="border: 2px solid var(--border); padding: 1.5rem; margin-bottom: 2rem;">
+            <h3 class="mb-4 text-sm uppercase">Instrument Details</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+                <div><strong>Manufacturer:</strong><br>{{ instrument.get('manufacturer', instrument.get('mfg_name', 'N/A')) }}</div>
+                <div><strong>Model:</strong><br>{{ instrument.get('model_number', instrument.get('model_num', 'N/A')) }}</div>
+                <div><strong>Serial:</strong><br>{{ instrument.get('serial_number', instrument.get('serial_num', 'N/A')) }}</div>
+                <div><strong>Class:</strong><br>{{ instrument.get('accuracy_class', 'N/A') }}</div>
+            </div>
+        </div>
+        
+        <div style="border: 2px solid var(--border); padding: 1.5rem; margin-bottom: 2rem; background-color: {% if session_data.overall_status == 'PASS' %}#00873E{% else %}#C0152F{% endif %}; color: white;">
+            <h3 class="uppercase text-center" style="margin: 0; font-weight: 900;">Overall Status: {{ session_data.overall_status }}</h3>
+        </div>
+        
+        <div style="font-size: 0.8rem; color: #555; border-top: 1px solid var(--border); padding-top: 1rem;">
+            <p><strong>Date of Issue:</strong> {{ session_data.created_at[:10] if session_data.created_at else 'Unknown' }}</p>
+            <p><strong>SHA-256 Signature:</strong><br><span style="word-break: break-all; font-family: monospace;">{{ session_data.pdf_hash }}</span></p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
