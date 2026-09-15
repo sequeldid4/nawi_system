@@ -214,8 +214,7 @@ def instrument_profile():
 
 
 def get_next_test_info(current_test):
-    from supabase_client import supabase
-from flask import session, url_for
+    from flask import session, url_for
     results = session.get('test_results', {})
     
     # Desired sequence
@@ -463,8 +462,7 @@ def download_final_certificate():
 
     base_url = os.environ.get('BASE_URL', 'http://127.0.0.1:5000')
     from app.services.pdf_generator import generate_secure_certificate
-    from supabase_client import supabase
-from flask import send_file
+    from flask import send_file
     
     pdf_buffer = generate_secure_certificate(
         cert_number=cert_number,
