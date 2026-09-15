@@ -45,7 +45,7 @@
 
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: space-between; align-items: center; border-bottom: var(--border-width) solid var(--border); padding-bottom: 0.5rem; margin-top: 1rem;">
         <p class="font-bold uppercase text-sm" style="margin: 0;">Select Test Workflow</p>
-        <p class="font-bold uppercase text-sm" style="margin: 0;">{% if profile_exists %}3 ACTIVE • 1 LOCKED{% else %}0 ACTIVE • 4 LOCKED{% endif %}</p>
+        <p class="font-bold uppercase text-sm" style="margin: 0;">{% if profile_exists %}4 ACTIVE • 1 LOCKED{% else %}0 ACTIVE • 4 LOCKED{% endif %}</p>
     </div>
 
     <!-- Test Grid with Jinja2 Conditional Logic -->
@@ -91,17 +91,32 @@
             <p class="text-sm font-bold" style="color: #444;">Ascending and descending load series tracking against dynamic MPE.</p>
             <div class="btn btn-full mt-4" style="background-color: var(--surface);">{% if profile_exists %}START TEST &rarr;{% else %}🔒 REQUIRES PROFILE{% endif %}</div>
         </a>
-        
-        <!-- Certificate Generation Block -->
-        {% set tests_done = session.get('test_results', {}) | length == 3 %}
-        <a {% if tests_done %}href="{{ url_for('inspector.download_final_certificate') }}"{% endif %} class="card {% if not tests_done %}card-locked{% else %}card-accent-top{% endif %}" {% if not tests_done %}style="pointer-events: none; opacity: 0.7;"{% else %}style="background-color: var(--header-bg); color: var(--surface);"{% endif %}>
+
+        <a {% if profile_exists %}href="{{ url_for('inspector.discrimination_test') }}"{% endif %} class="card {% if not profile_exists %}card-locked{% endif %}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <span class="badge">STAGE 05</span>
+                <span class="badge {% if session.get('test_results', {}).get('discrimination') %}badge-pass{% elif profile_exists %}badge-warn{% endif %}" style="font-size: 0.65rem;">
+                    {% if session.get('test_results', {}).get('discrimination') %}COMPLETED
+                    {% elif profile_exists %}READY
+                    {% else %}LOCKED{% endif %}
+                </span>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">05. DISCRIMINATION TEST</h3>
+            <p class="text-sm font-bold" style="color: #444;">Verify minimum additional load required to change indication.</p>
+            <div class="btn btn-full mt-4" style="background-color: var(--surface);">{% if profile_exists %}START TEST &rarr;{% else %}🔒 REQUIRES PROFILE{% endif %}</div>
+        </a>
+
+        
+        <!-- Certificate Generation Block -->
+        {% set tests_done = session.get('test_results', {}) | length == 4 %}
+        <a {% if tests_done %}href="{{ url_for('inspector.download_final_certificate') }}"{% endif %} class="card {% if not tests_done %}card-locked{% else %}card-accent-top{% endif %}" {% if not tests_done %}style="pointer-events: none; opacity: 0.7;"{% else %}style="background-color: var(--header-bg); color: var(--surface);"{% endif %}>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span class="badge">STAGE 06</span>
                 <span class="badge {% if tests_done %}badge-pass{% endif %}" style="font-size: 0.65rem;">
                     {% if tests_done %}READY{% else %}LOCKED{% endif %}
                 </span>
             </div>
-            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; {% if tests_done %}color: var(--accent);{% endif %}">05. OFFICIAL STAMP & CERTIFICATE</h3>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; {% if tests_done %}color: var(--accent);{% endif %}">06. OFFICIAL STAMP & CERTIFICATE</h3>
             <p class="text-sm font-bold" style="{% if tests_done %}color: #EEE;{% else %}color: #444;{% endif %}">Generate OIML legal metrology conformity certificate and apply cryptographic seal.</p>
             <div class="btn btn-full mt-4" style="{% if tests_done %}background-color: var(--accent); color: #000;{% else %}background-color: var(--surface);{% endif %}">
                 {% if tests_done %}DOWNLOAD FINAL CERTIFICATE &darr;{% else %}🔒 REQUIRES 3 COMPLETED TESTS{% endif %}

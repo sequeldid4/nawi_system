@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Discrimination Test - SIH26035{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2>Discrimination Test</h2>
+</div>
+
+<div class="stack" class="stack max-w-lg">
+    <form method="POST" class="stack">
+        {{ form.hidden_tag() }}
+        
+        <div class="card card-accent-top">
+            <h3 class="mb-6 uppercase">Instrument Params</h3>
+            <div class="grid-2">
+                <div>
+                    <label class="field-label">{{ form.d_value.label.text }}</label>
+                    {{ form.d_value(class="input-field") }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 class="mb-6 uppercase">Readings</h3>
+            <div class="grid-3">
+                <div>
+                    <label class="field-label">{{ form.reading_before.label.text }}</label>
+                    {{ form.reading_before(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.additional_weight.label.text }}</label>
+                    {{ form.additional_weight(class="input-field") }}
+                </div>
+                <div>
+                    <label class="field-label">{{ form.reading_after.label.text }}</label>
+                    {{ form.reading_after(class="input-field") }}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            {{ form.submit(class="btn btn-primary btn-full") }}
+        </div>
+    </form>
+
+    {% if result %}
+    <div class="result-panel {% if result.status == 'PASS' %}pass{% else %}fail{% endif %} stack">
+        <h3 class="uppercase text-sm font-bold">Result</h3>
+        <div class="grid-2">
+            <div>
+                <p>Threshold Req: <span class="result-value">&le; {{ result.threshold_required }}g</span></p>
+            </div>
+            <div>
+                <p>Actual Change: <span class="result-value">{{ result.actual_change }}g</span></p>
+            </div>
+        </div>
+        <p>Status: <span class="badge {% if result.status == 'PASS' %}badge-pass{% else %}badge-fail{% endif %} badge-lg">{{ result.status }}</span></p>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; width: 100%;">
+        <a href="{{ url_for('inspector.dashboard') }}" class="btn btn-ghost">&larr; Back</a>
+        {% if result %}
+        <a href="{{ next_url }}" class="btn btn-dark">{{ next_label }} &rarr;</a>
+        {% endif %}
+    </div>
+    </div>
+</div>
+{% endblock %}

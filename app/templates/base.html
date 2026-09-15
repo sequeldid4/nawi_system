@@ -74,6 +74,10 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
                     ECCENTRICITY TEST
                 </a>
+                <a href="{{ url_for('inspector.discrimination_test') }}" class="sidebar-link {% if request.endpoint == 'inspector.discrimination_test' %}active{% endif %}" {% if not session.get('profile') %}style="pointer-events: none; opacity: 0.5;"{% endif %}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                    DISCRIMINATION TEST
+                </a>
             </nav>
 
             <!-- Status Box -->

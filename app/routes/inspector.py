@@ -12,6 +12,7 @@ from wtforms.validators import DataRequired, ValidationError
 from flask import flash
 from app.services.pdf_generator import generate_secure_certificate
 from app.services.oiml_engine import get_mpe, check_pass_fail, check_repeatability, check_eccentricity
+from app.services.oiml_engine import evaluate_discrimination
 
 inspector_bp = Blueprint('inspector', __name__)
 
@@ -74,6 +75,14 @@ class RepeatabilityTestForm(FlaskForm):
     reading_3 = FloatField('Reading 3 (g)', validators=[DataRequired()])
     submit = SubmitField('Evaluate Repeatability')
 
+
+class DiscriminationTestForm(FlaskForm):
+    d_value = FloatField('Actual Scale Interval (d) in grams', validators=[DataRequired()])
+    reading_before = FloatField('Reading Before (g)', validators=[DataRequired()])
+    additional_weight = FloatField('Additional Weight Applied (g)', validators=[DataRequired()])
+    reading_after = FloatField('Reading After (g)', validators=[DataRequired()])
+    submit = SubmitField('Evaluate Discrimination')
+
 class EccentricityTestForm(FlaskForm):
     accuracy_class = SelectField('Accuracy Class', choices=ACCURACY_CHOICES, validators=[DataRequired()])
     e_value = FloatField('Verification Scale Interval (e) in grams', validators=[DataRequired()])
@@ -126,11 +135,12 @@ def get_next_test_info(current_test):
     sequence = [
         ('weighing', 'Weighing Test', 'inspector.weighing_test'),
         ('repeatability', 'Repeatability Test', 'inspector.repeatability_test'),
-        ('eccentricity', 'Eccentricity Test', 'inspector.eccentricity_test')
+        ('eccentricity', 'Eccentricity Test', 'inspector.eccentricity_test'),
+        ('discrimination', 'Discrimination Test', 'inspector.discrimination_test')
     ]
     
-    # Check if all 3 are done
-    if len(results) >= 3:
+    # Check if all 4 are done
+    if len(results) >= 4:
         return url_for('inspector.dashboard'), "Finish & View Certificate"
         
     # Find the next uncompleted test in sequence
@@ -233,6 +243,34 @@ def weighing_test():
     return render_template('weighing_test.html', form=form, result=result, mpe=mpe_limit, next_url=next_url, next_label=next_label)
 
 
+
+@inspector_bp.route('/discrimination-test', methods=['GET', 'POST'])
+def discrimination_test():
+    form = DiscriminationTestForm()
+    result = None
+
+    if request.method == 'GET' and 'profile' in session:
+        form.d_value.data = float(session['profile'].get('d_value', 0))
+
+    if form.validate_on_submit():
+        d = form.d_value.data
+        before = form.reading_before.data
+        after = form.reading_after.data
+        added = form.additional_weight.data
+
+        result = evaluate_discrimination(before, after, added, d)
+
+        if result is not None:
+            if 'test_results' not in session: 
+                session['test_results'] = {}
+            session['test_results']['discrimination'] = result['status']
+            session['discrimination_detail'] = result
+            session.modified = True
+
+    next_url, next_label = get_next_test_info('discrimination')
+    return render_template('discrimination_test.html', form=form,
+                          result=result, next_url=next_url, next_label=next_label)
+
 @inspector_bp.route('/download-final-certificate')
 def download_final_certificate():
     profile = session.get('profile')
@@ -242,8 +280,8 @@ def download_final_certificate():
         flash("No active instrument profile found.", "error")
         return redirect(url_for('inspector.dashboard'))
         
-    if len(test_results) < 3:
-        missing = [t for t in ['weighing', 'repeatability', 'eccentricity'] if t not in test_results]
+    if len(test_results) < 4:
+        missing = [t for t in ['weighing', 'repeatability', 'eccentricity', 'discrimination'] if t not in test_results]
         if missing:
             flash(f"Cannot generate certificate — {missing[0].capitalize()} test is incomplete.", "error")
             return redirect(url_for('inspector.dashboard'))
@@ -269,11 +307,15 @@ def download_final_certificate():
                 rep_res = supabase.table('repeatability_results').select('*').eq('session_id', session_id).execute()
                 ecc_res = supabase.table('eccentricity_results').select('*').eq('session_id', session_id).execute()
                 weigh_res = supabase.table('weighing_results').select('*').eq('session_id', session_id).execute()
+                disc_res = supabase.table('discrimination_results').select('*').eq('session_id', session_id).execute()
                 
-                if rep_res.data and ecc_res.data and weigh_res.data:
+                if rep_res.data and ecc_res.data and weigh_res.data and disc_res.data:
                     repeatability = rep_res.data[0]
                     eccentricity = ecc_res.data[0]
                     weighing = weigh_res.data[0]
+                    discrimination = disc_res.data[0]
+                    discrimination['deviation'] = discrimination.get('actual_change', 'N/A')
+                    discrimination['mpe'] = discrimination.get('threshold_required', 'N/A')
                     
                     vs_res = supabase.table('verification_sessions').select('*').eq('id', session_id).execute()
                     if vs_res.data:
@@ -301,7 +343,10 @@ def download_final_certificate():
     repeatability = {'status': test_results.get('repeatability', 'FAIL')}
     eccentricity = {'status': test_results.get('eccentricity', 'FAIL')}
     weighing = {'status': test_results.get('weighing', 'FAIL')}
-    discrimination = None
+    discrimination = session.get('discrimination_detail')
+    if discrimination:
+        discrimination['deviation'] = discrimination.get('actual_change', 'N/A')
+        discrimination['mpe'] = discrimination.get('threshold_required', 'N/A')
     
     if not cert_number:
         cert_number = session.get('cert_number', f"NAWI-{datetime.now().year}-000001")

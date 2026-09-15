@@ -64,3 +64,25 @@ def check_eccentricity(actual_weight, readings, mpe):
         if abs(r - actual_weight) > mpe:
             return "FAIL"
     return "PASS"
+
+def evaluate_discrimination(reading_before, reading_after, additional_weight, d):
+    """
+    OIML R-76-1:2006 Section 3.6.3 / T.4.2:
+    The discrimination threshold is the smallest additional load
+    that, when gently added, causes a perceptible change in
+    indication. Pass condition: the added weight is small enough
+    to be a valid threshold test (<= 1.4d) AND the instrument
+    actually registered a visible change (>= d).
+    """
+    if d <= 0:
+        return None
+    threshold_required = 1.4 * d
+    change_detected = abs(reading_after - reading_before) >= d
+    weight_within_threshold = additional_weight <= threshold_required
+    status = 'PASS' if (change_detected and weight_within_threshold) else 'FAIL'
+    return {
+        'threshold_required': round(threshold_required, 3),
+        'actual_change': round(abs(reading_after - reading_before), 3),
+        'change_detected': change_detected,
+        'status': status
+    }
