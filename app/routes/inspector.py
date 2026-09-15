@@ -5,13 +5,16 @@ try:
     from supabase import create_client, Client
 except ImportError:
     pass
+from supabase_client import supabase
 from flask import Blueprint, render_template, request, redirect, url_for, session, send_file
 from flask_wtf import FlaskForm
 from wtforms import FloatField, SelectField, SubmitField, StringField, TextAreaField
 from wtforms.validators import DataRequired, ValidationError
+from supabase_client import supabase
 from flask import flash
 from app.services.pdf_generator import generate_secure_certificate
 from app.services.oiml_engine import get_mpe, check_pass_fail, check_repeatability, check_eccentricity
+from app.services.oiml_engine import validate_instrument_class
 from app.services.oiml_engine import evaluate_discrimination
 
 inspector_bp = Blueprint('inspector', __name__)
@@ -97,14 +100,72 @@ class EccentricityTestForm(FlaskForm):
 @inspector_bp.route('/dashboard')
 def dashboard():
     profile_exists = 'profile' in session
+    test_results = session.get('test_results', {})
+    
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    session_id = session.get('session_id')
+    
+    if url and key and session_id:
+        try:
+            supabase = create_client(url, key)
+            
+            # Pull statuses
+            if not test_results.get('repeatability'):
+                r = supabase.table('repeatability_results').select('status').eq('session_id', session_id).execute()
+                if r.data: test_results['repeatability'] = r.data[0]['status']
+                
+            if not test_results.get('eccentricity'):
+                r = supabase.table('eccentricity_results').select('status').eq('session_id', session_id).execute()
+                if r.data: test_results['eccentricity'] = r.data[0]['status']
+                
+            if not test_results.get('weighing'):
+                r = supabase.table('weighing_results').select('status').eq('session_id', session_id).execute()
+                if r.data: test_results['weighing'] = r.data[0]['status']
+                
+            if not test_results.get('discrimination'):
+                r = supabase.table('discrimination_results').select('status').eq('session_id', session_id).execute()
+                if r.data: test_results['discrimination'] = r.data[0]['status']
+                
+            session['test_results'] = test_results
+            session.modified = True
+        except Exception:
+            pass
+            
     return render_template('dashboard.html', profile_exists=profile_exists)
 
 @inspector_bp.route('/instrument-profile', methods=['GET', 'POST'])
 def instrument_profile():
     form = InstrumentProfileForm()
+    validation_result = None
+
+    if request.method == 'GET' and 'profile' in session:
+        # Pre-fill form
+        form.mfg_name.data = session['profile'].get('mfg_name')
+        form.model_num.data = session['profile'].get('model_num')
+        form.serial_num.data = session['profile'].get('serial_num')
+        form.scale_type.data = session['profile'].get('scale_type')
+        form.accuracy_class.data = session['profile'].get('accuracy_class')
+        form.max_capacity.data = session['profile'].get('max_capacity', 0)
+        form.min_capacity.data = session['profile'].get('min_capacity', 0)
+        form.e_value.data = session['profile'].get('e_value', 0)
+        form.d_value.data = session['profile'].get('d_value', 0)
     
     if form.validate_on_submit():
         # Store all vital metrology data into a session dictionary
+        profile_data = {
+            'manufacturer_name': form.mfg_name.data,
+            'model_number': form.model_num.data,
+            'serial_number': form.serial_num.data,
+            'scale_type': form.scale_type.data,
+            'accuracy_class': form.accuracy_class.data,
+            'max_capacity': form.max_capacity.data,
+            'min_capacity': form.min_capacity.data,
+            'e': form.e_value.data,
+            'd': form.d_value.data,
+            'manufacturer_address': form.mfg_address.data
+        }
+        
         session['profile'] = {
             'mfg_name': form.mfg_name.data,
             'model_num': form.model_num.data,
@@ -117,18 +178,44 @@ def instrument_profile():
             'd_value': form.d_value.data
         }
         
-        return redirect(url_for('inspector.dashboard'))
+        if supabase:
+            try:
+                # Insert instrument profile
+                inst_res = supabase.table('instrument_profiles').insert(profile_data).execute()
+                if inst_res.data:
+                    instrument_id = inst_res.data[0]['id']
+                    session['instrument_id'] = instrument_id
+                    
+                    # Create verification session
+                    vs_res = supabase.table('verification_sessions').insert({
+                        'instrument_id': instrument_id,
+                        'inspector_name': 'Inspector'
+                    }).execute()
+                    
+                    if vs_res.data:
+                        session['session_id'] = vs_res.data[0]['id']
+            except Exception as e:
+                flash(f"Supabase sync failed: {str(e)}", 'error')
+        
+        validation_result = validate_instrument_class(
+            form.max_capacity.data,
+            form.min_capacity.data,
+            form.e_value.data,
+            form.accuracy_class.data
+        )
+        return render_template('instrument_profile.html', form=form, validation_result=validation_result)
+
     elif request.method == 'POST':
         for field, errors in form.errors.items():
             for error in errors:
                 flash(f"{getattr(form, field).label.text}: {error}", 'error')
 
-        
-    return render_template('instrument_profile.html', form=form)
+    return render_template('instrument_profile.html', form=form, validation_result=None)
 
 
 def get_next_test_info(current_test):
-    from flask import session, url_for
+    from supabase_client import supabase
+from flask import session, url_for
     results = session.get('test_results', {})
     
     # Desired sequence
@@ -266,6 +353,20 @@ def discrimination_test():
             session['test_results']['discrimination'] = result['status']
             session['discrimination_detail'] = result
             session.modified = True
+            
+            if supabase and session.get('session_id'):
+                try:
+                    supabase.table('discrimination_results').insert({
+                        'session_id': session.get('session_id'),
+                        'test_load': before,  # The prompt says test_load, we'll map reading_before to test_load context or just store 0 for test_load if undefined. Wait, the DB schema says test_load, reading_before, additional_weight, reading_after.
+                        'reading_before': before,
+                        'additional_weight': added,
+                        'reading_after': after,
+                        'threshold_required': result['threshold_required'],
+                        'status': result['status']
+                    }).execute()
+                except Exception as e:
+                    flash(f"Database sync failed: {str(e)}", 'error')
 
     next_url, next_label = get_next_test_info('discrimination')
     return render_template('discrimination_test.html', form=form,
@@ -332,9 +433,12 @@ def download_final_certificate():
                         hash_input = (f"{cert_number}|{profile.get('serial_num', '')}|{overall_status}|{repeatability.get('status', 'FAIL')}|{eccentricity.get('status', 'FAIL')}|{weighing.get('status', 'FAIL')}|{completed_at}").encode('utf-8')
                         pdf_hash = hashlib.sha256(hash_input).hexdigest()
                         
+                        from datetime import datetime, timezone
                         supabase.table('verification_sessions').update({
                             'cert_number': cert_number,
-                            'pdf_hash': pdf_hash
+                            'pdf_hash': pdf_hash,
+                            'overall_status': overall_status,
+                            'completed_at': datetime.now(timezone.utc).isoformat()
                         }).eq('id', session_id).execute()
         except Exception as e:
             pass
@@ -359,7 +463,8 @@ def download_final_certificate():
 
     base_url = os.environ.get('BASE_URL', 'http://127.0.0.1:5000')
     from app.services.pdf_generator import generate_secure_certificate
-    from flask import send_file
+    from supabase_client import supabase
+from flask import send_file
     
     pdf_buffer = generate_secure_certificate(
         cert_number=cert_number,

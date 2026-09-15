@@ -1,7 +1,7 @@
 Flask
-Flask-SQLAlchemy
 Flask-WTF
 WTForms
 reportlab
 qrcode[pil]
-dotenv
+python-dotenv
+supabase
