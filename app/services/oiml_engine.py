@@ -21,7 +21,7 @@ def get_mpe(load, e, accuracy_class='III', test_type='initial'):
         else:
             return None # Out of bounds for Class III
             
-    # OIML R-76 Class II Limits (Adding this since it's a common SIH requirement)
+    # OIML R-76 Class II Limits 
     elif accuracy_class == 'II':
         if 0 <= m <= 5000:
             mpe_multiplier = 0.5
