@@ -18,7 +18,7 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 
 @app.route('/')
 def home():
-    return redirect(url_for('inspector.dashboard'))
+    return redirect(url_for('auth.login'))
 
 @app.errorhandler(404)
 def page_not_found(e):

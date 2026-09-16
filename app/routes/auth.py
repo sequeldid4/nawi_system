@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session
+from supabase_client import supabase
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -11,7 +12,6 @@ def signup():
         new_password = request.form.get('new_password')
         confirm_password = request.form.get('confirm_password')
 
-        # Basic server-side validation
         if not all([fullname, email, new_username, new_password, confirm_password]):
             flash("All fields are required.", "error")
             return render_template('auth/signup.html')
@@ -21,40 +21,83 @@ def signup():
             return render_template('auth/signup.html')
 
         if new_password != confirm_password:
-            # We don't flash for confirm_password mismatch in the same way,
-            # we pass a specific context variable to trigger the inline error.
             return render_template('auth/signup.html', error_field='confirm_password')
 
-        # TODO: Implement real user creation / database persistence here
-        # Example: user = User(username=new_username, email=email)
-        #          user.set_password(new_password)
-        #          db.session.add(user)
-        #          db.session.commit()
+        if not supabase:
+            flash("Database connection not configured.", "error")
+            return render_template('auth/signup.html')
 
-        # For now, simulate success
-        flash("Account created successfully. Please sign in.", "success")
-        return redirect(url_for('auth.login'))
+        try:
+            response = supabase.auth.sign_up({
+                "email": email,
+                "password": new_password,
+                "options": {
+                    "data": {
+                        "full_name": fullname,
+                        "username": new_username
+                    }
+                }
+            })
+            
+            # If user exists or created successfully
+            flash("Account created successfully. Please sign in.", "success")
+            return redirect(url_for('auth.login'))
+            
+        except Exception as e:
+            # Clean up the error message from Supabase for the user
+            err_msg = str(e)
+            if "already registered" in err_msg.lower():
+                flash("An account with this email already exists.", "error")
+            else:
+                flash(f"Registration failed: {err_msg}", "error")
+            return render_template('auth/signup.html')
 
     return render_template('auth/signup.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
 
-        if not username or not password:
-            flash("INVALID USERNAME OR PASSWORD", "error")
+        if not email or not password:
+            flash("INVALID EMAIL OR PASSWORD", "error")
             return render_template('auth/login.html')
 
-        # TODO: Implement real user authentication here
-        # Example: user = User.query.filter_by(username=username).first()
-        #          if user and user.check_password(password):
-        #              login_user(user)
-        #              return redirect(url_for('inspector.dashboard'))
+        if not supabase:
+            flash("Database connection not configured.", "error")
+            return render_template('auth/login.html')
 
-        # Since we have no persistence layer yet, all attempts fail.
-        flash("INVALID USERNAME OR PASSWORD", "error")
-        return render_template('auth/login.html')
+        try:
+            response = supabase.auth.sign_in_with_password({
+                "email": email,
+                "password": password
+            })
+            
+            if response.user:
+                session['user_id'] = response.user.id
+                session['access_token'] = response.session.access_token
+                
+                # Optional: Stash their profile data in the session for display in the UI
+                session['inspector_name'] = response.user.user_metadata.get('full_name', 'Inspector')
+                session['inspector_username'] = response.user.user_metadata.get('username', email)
+                
+                return redirect(url_for('inspector.dashboard'))
+                
+        except Exception as e:
+            flash("INVALID EMAIL OR PASSWORD", "error")
+            return render_template('auth/login.html')
 
     return render_template('auth/login.html')
+
+@auth_bp.route('/logout')
+def logout():
+    session.clear()
+    # Attempt to sign out on the Supabase side as well, though not strictly necessary 
+    # since we just clear the Flask cookie, but it's good practice.
+    if supabase:
+        try:
+            supabase.auth.sign_out()
+        except:
+            pass
+    return redirect(url_for('auth.login'))

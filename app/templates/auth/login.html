@@ -55,8 +55,8 @@
     <!-- Form Content -->
     <form class="space-y-5" method="POST" action="{{ url_for('auth.login') }}">
       <div>
-        <label class="field-label" for="username">USERNAME</label>
-        <input autocomplete="username" class="input-field" id="username" name="username" placeholder="e.g. INSP-DE-9042" type="text" value="{{ request.form.get('username', '') }}" required />
+        <label class="field-label" for="email">EMAIL ADDRESS</label>
+        <input autocomplete="email" class="input-field" id="email" name="email" placeholder="official.email@authority.gov" type="email" value="{{ request.form.get('email', '') }}" required />
       </div>
       <div>
         <div class="flex justify-between items-center mb-1.5">

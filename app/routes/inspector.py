@@ -19,6 +19,13 @@ from app.services.oiml_engine import evaluate_discrimination
 
 inspector_bp = Blueprint('inspector', __name__)
 
+@inspector_bp.before_request
+def require_login():
+    if 'user_id' not in session:
+        flash("PLEASE SIGN IN TO ACCESS THE PLATFORM.", "error")
+        return redirect(url_for('auth.login'))
+
+
 # Reusable choices list to keep forms clean
 ACCURACY_CHOICES = [
     ('I', 'Class I (Special)'), 
