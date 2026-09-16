@@ -291,6 +291,7 @@ def eccentricity_test():
         mpe_limit = get_mpe(load, e, acc_class)
         if mpe_limit is not None:
             result = check_eccentricity(load, readings, mpe_limit)
+            max_dev = round(max(abs(r - load) for r in readings), 2)
             
             if 'test_results' not in session: session['test_results'] = {}
             session['test_results']['eccentricity'] = {
@@ -325,6 +326,7 @@ def weighing_test():
         mpe_limit = get_mpe(load, e, acc_class)
         if mpe_limit is not None:
             result = check_pass_fail(load, displayed, mpe_limit)
+            error = round(abs(displayed - load), 2)
             
             if 'test_results' not in session: session['test_results'] = {}
             session['test_results']['weighing'] = {
