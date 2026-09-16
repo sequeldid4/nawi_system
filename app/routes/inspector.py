@@ -1,6 +1,6 @@
 import os
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 try:
     from supabase import create_client, Client
 except ImportError:
@@ -259,7 +259,11 @@ def repeatability_test():
             
             # Save result to session
             if 'test_results' not in session: session['test_results'] = {}
-            session['test_results']['repeatability'] = result
+            session['test_results']['repeatability'] = {
+                'status': result,
+                'mpe': mpe_limit,
+                'max_difference': max_diff
+            }
             session.modified = True
         else:
             result = "INVALID LOAD FOR THIS CLASS"
@@ -289,7 +293,11 @@ def eccentricity_test():
             result = check_eccentricity(load, readings, mpe_limit)
             
             if 'test_results' not in session: session['test_results'] = {}
-            session['test_results']['eccentricity'] = result
+            session['test_results']['eccentricity'] = {
+                'status': result,
+                'mpe': mpe_limit,
+                'max_deviation': max_dev
+            }
             session.modified = True
         else:
             result = "INVALID LOAD FOR THIS CLASS"
@@ -319,7 +327,11 @@ def weighing_test():
             result = check_pass_fail(load, displayed, mpe_limit)
             
             if 'test_results' not in session: session['test_results'] = {}
-            session['test_results']['weighing'] = result
+            session['test_results']['weighing'] = {
+                'status': result,
+                'mpe': mpe_limit,
+                'error': error
+            }
             session.modified = True
         else:
             result = "INVALID LOAD FOR THIS CLASS"
@@ -389,7 +401,7 @@ def download_final_certificate():
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_KEY")
     
-    overall_status = 'PASS' if all(res == 'PASS' for res in test_results.values()) else 'FAIL'
+    overall_status = 'PASS' if all((res.get('status') if isinstance(res, dict) else res) == 'PASS' for res in test_results.values()) else 'FAIL'
     completed_at = str(datetime.now())
     cert_number = session.get('cert_number')
     pdf_hash = session.get('pdf_hash')
@@ -432,7 +444,6 @@ def download_final_certificate():
                         hash_input = (f"{cert_number}|{profile.get('serial_num', '')}|{overall_status}|{repeatability.get('status', 'FAIL')}|{eccentricity.get('status', 'FAIL')}|{weighing.get('status', 'FAIL')}|{completed_at}").encode('utf-8')
                         pdf_hash = hashlib.sha256(hash_input).hexdigest()
                         
-                        from datetime import datetime, timezone
                         supabase.table('verification_sessions').update({
                             'cert_number': cert_number,
                             'pdf_hash': pdf_hash,
@@ -443,9 +454,14 @@ def download_final_certificate():
             pass
 
     # Fallback to Flask Session generation
-    repeatability = {'status': test_results.get('repeatability', 'FAIL')}
-    eccentricity = {'status': test_results.get('eccentricity', 'FAIL')}
-    weighing = {'status': test_results.get('weighing', 'FAIL')}
+    repeatability = test_results.get('repeatability', {'status': 'FAIL'})
+    if isinstance(repeatability, str): repeatability = {'status': repeatability}
+    
+    eccentricity = test_results.get('eccentricity', {'status': 'FAIL'})
+    if isinstance(eccentricity, str): eccentricity = {'status': eccentricity}
+    
+    weighing = test_results.get('weighing', {'status': 'FAIL'})
+    if isinstance(weighing, str): weighing = {'status': weighing}
     discrimination = session.get('discrimination_detail')
     if discrimination:
         discrimination['deviation'] = discrimination.get('actual_change', 'N/A')

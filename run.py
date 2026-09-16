@@ -7,6 +7,7 @@ from app.routes.inspector import inspector_bp
 load_dotenv()
 
 app = Flask(__name__, template_folder='app/templates')
+app.config["WTF_CSRF_ENABLED"] = False
 
 # Fetch the key securely, with a fallback just in case
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_fallback_key') 
