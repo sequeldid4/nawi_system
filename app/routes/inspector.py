@@ -219,9 +219,9 @@ def get_next_test_info(current_test):
     
     # Desired sequence
     sequence = [
-        ('weighing', 'Weighing Test', 'inspector.weighing_test'),
         ('repeatability', 'Repeatability Test', 'inspector.repeatability_test'),
         ('eccentricity', 'Eccentricity Test', 'inspector.eccentricity_test'),
+        ('weighing', 'Weighing Test', 'inspector.weighing_test'),
         ('discrimination', 'Discrimination Test', 'inspector.discrimination_test')
     ]
     

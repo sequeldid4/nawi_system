@@ -366,6 +366,9 @@ td.fail-cell {
 
 /* TOP BAR ADDITIONS */
 .top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
   background-color: var(--header-bg);
   color: var(--surface);
   padding: 0.5rem 1.5rem;
@@ -469,6 +472,11 @@ td.fail-cell {
 }
 
 .sidebar {
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  z-index: 100;
   width: 280px;
   flex-shrink: 0;
   border-right: var(--border-width) solid var(--border);
