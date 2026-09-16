@@ -18,11 +18,9 @@
     <header class="top-bar">
         <div class="top-bar-left">
             
-            {% if request.endpoint == 'inspector.dashboard' %}
             <button id="sidebar-toggle" style="background: var(--accent); border: 2px solid var(--border); border-radius: 4px; cursor: pointer; margin-right: 0.5rem; padding: 0.2rem 0.5rem; display: flex; align-items: center; box-shadow: 2px 2px 0px var(--border); transition: transform 0.1s;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            {% endif %}
             <a href="{{ url_for('inspector.dashboard') }}" class="nawi-logo" style="text-decoration: none;">NAWI</a>
             <span class="oiml-badge">OIML R-76</span>
             <span class="hide-mobile" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -116,7 +114,6 @@
 
     
     {% block extra_js %}
-    {% if request.endpoint == 'inspector.dashboard' %}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const toggle = document.getElementById('sidebar-toggle');
@@ -134,7 +131,6 @@
             }
         });
     </script>
-    {% endif %}
     {% endblock %}
 
 </body>
