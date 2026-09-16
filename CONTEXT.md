@@ -23,7 +23,8 @@ It serves as the single source of truth for design tokens, components, and rules
 ## Typography
 - H1-H6: Bold (700)
 - Body: Medium (500)
-- `Space Grotesk` is strictly used across all elements.
+- `Space Grotesk` is strictly used across all standard elements.
+- `JetBrains Mono` (500, 700) is used for monospace tokens, meta-tags, and system codes.
 
 ## Component Classes
 - **Buttons**: `.btn`, `.btn-primary`, `.btn-dark`, `.btn-ghost`, `.btn-full`, `.btn-disabled`

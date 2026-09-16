@@ -1,0 +1,148 @@
+{% extends "auth_base.html" %}
+
+{% block title %}404 - Page Not Found // NAWI Inspector{% endblock %}
+
+{% block extra_css %}
+<style>
+    .neo-card {
+      background: var(--surface);
+      border: 2.5px solid var(--border);
+      box-shadow: 6px 6px 0px var(--border);
+      max-width: 480px;
+      width: 100%;
+      padding: 40px;
+      text-align: center;
+      position: relative;
+    }
+
+    .neo-tag {
+      display: inline-block;
+      background: var(--dark-strip, #0D0D0D);
+      color: #FFFFFF;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      padding: 4px 10px;
+      border: 2px solid var(--border);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .error-code {
+      font-size: 80px;
+      font-weight: 900;
+      color: var(--fail);
+      line-height: 0.95;
+      letter-spacing: -2px;
+      margin: 0 0 12px 0;
+      text-shadow: 3px 3px 0px #000000;
+    }
+
+    .error-title {
+      font-size: 22px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      margin: 0 0 12px 0;
+    }
+
+    .error-desc {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #555555;
+      margin: 0 0 28px 0;
+    }
+
+    .meta-strip {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 2px dashed #000000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #666666;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--fail);
+      border: 1px solid #000;
+      margin-right: 6px;
+    }
+    
+    .dot-field-glow {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- DotField Interactive Background Canvas & Glow -->
+<div aria-hidden="true" class="dot-field-container">
+  <svg class="dot-field-glow" id="dotGlowSvg">
+    <defs>
+      <radialGradient cx="50%" cy="50%" id="cursorGlowGrad" r="50%">
+        <stop offset="0%" stop-color="#EEFF00" stop-opacity="0.38"></stop>
+        <stop offset="45%" stop-color="#EEFF00" stop-opacity="0.18"></stop>
+        <stop offset="100%" stop-color="#EEFF00" stop-opacity="0"></stop>
+      </radialGradient>
+    </defs>
+    <circle cx="-9999" cy="-9999" fill="url(#cursorGlowGrad)" id="cursorGlowCircle" opacity="0" r="90" style="transition: opacity 0.4s ease;"></circle>
+  </svg>
+  <canvas class="dot-field-canvas" id="dotFieldCanvas"></canvas>
+</div>
+
+<div class="neo-card relative z-10">
+  <!-- Top Meta Identifier -->
+  <div>
+    <span class="neo-tag">OIML R-76 // ROUTE FAULT</span>
+  </div>
+  <!-- Bold 404 Count -->
+  <div class="error-code">404</div>
+  <!-- Heading -->
+  <h1 class="error-title">Page Not Found</h1>
+  <!-- Description -->
+  <p class="error-desc">
+    This route doesn't exist in the verification system. Check the URL or return to the dashboard.
+  </p>
+  
+  <!-- Full Width Button -->
+  <a class="btn btn-primary btn-full uppercase" href="{{ url_for('inspector.dashboard') }}" style="display: flex; gap: 8px;">
+    <span>Back to Dashboard</span>
+    <svg fill="none" height="18" stroke="currentColor" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.5" viewBox="0 0 24 24" width="18">
+      <line x1="5" x2="19" y1="12" y2="12"></line>
+      <polyline points="12 5 19 12 12 19"></polyline>
+    </svg>
+  </a>
+  
+  <!-- Technical Sub-Footer -->
+  <div class="meta-strip">
+    <div style="display: flex; align-items: center;">
+      <span class="status-dot"></span>
+      <span>ERR_ROUTE_UNDEFINED</span>
+    </div>
+    <span>SIH26035 // DISCORDANCE</span>
+  </div>
+</div>
+
+<!-- Bottom Brand Watermark -->
+<div class="relative z-10" style="margin-top: 24px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #0D0D0D; text-transform: uppercase;">
+  <span style="background: #EEFF00; border: 1.5px solid #000; padding: 2px 6px;">NAWI</span>
+  <span>Legal Metrology Platform</span>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dot-field.js') }}"></script>
+{% endblock %}

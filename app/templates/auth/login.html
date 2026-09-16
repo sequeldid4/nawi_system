@@ -1,0 +1,104 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Sign In - NAWI Legal Metrology Inspector{% endblock %}
+
+{% block content %}
+<!-- Interactive CursorGrid Canvas -->
+<canvas id="cursor-grid-canvas"></canvas>
+
+<!-- System Watermark / OIML Stamp Header outside card -->
+<div class="mb-5 flex items-center justify-between w-full max-w-[420px] z-10 px-1">
+  <div class="flex items-center gap-2">
+    <span class="bg-[#EEFF00] text-black font-black text-xs px-2 py-0.5 border-[2px] border-black shadow-[2px_2px_0px_#000]">NAWI</span>
+    <span class="meta-tag text-xs tracking-wider text-black">OIML R-76 // ED.2006</span>
+  </div>
+  <div class="meta-tag text-[10px] text-gray-600 bg-white px-2 py-0.5 border border-black shadow-[1.5px_1.5px_0px_#000]">
+    SYS ID: SIH26035
+  </div>
+</div>
+
+<!-- Auth Card Container -->
+<div class="auth-card">
+  <!-- Dark Strip Header -->
+  <div class="section-header">
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-2.5 h-2.5 bg-[#EEFF00] border border-white"></span>
+      <span>SIH26035 INSPECTOR ACCESS</span>
+    </div>
+    <span class="badge-code">SEC-AUTH</span>
+  </div>
+  
+  <div class="p-6 md:p-8">
+    <!-- Title & Subtitle -->
+    <h1 class="text-[24px] font-black text-[#0D0D0D] leading-tight mb-2 tracking-tight">
+      Legal Metrology Verification
+    </h1>
+    <p class="text-[13px] text-[#555555] font-medium mb-6">
+      Sign in to access the NAWI inspection dashboard.
+    </p>
+
+    <!-- Conditional Error State -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="error-banner mb-6 {% if category == 'success' %}bg-[#00E676] text-black border-black{% endif %}">
+            <svg class="w-4 h-4 shrink-0 fill-current" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="flex-1">{{ message }}</span>
+            <span class="meta-tag text-[9px] bg-black/30 px-1 py-0.5">ERR_401</span>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Form Content -->
+    <form class="space-y-5" method="POST" action="{{ url_for('auth.login') }}">
+      <div>
+        <label class="field-label" for="username">USERNAME</label>
+        <input autocomplete="username" class="input-field" id="username" name="username" placeholder="e.g. INSP-DE-9042" type="text" value="{{ request.form.get('username', '') }}" required />
+      </div>
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <label class="field-label !mb-0" for="password">PASSWORD</label>
+          <span class="text-[10px] text-gray-500 font-mono">HASH: SHA-256</span>
+        </div>
+        <input autocomplete="current-password" class="input-field text-lg tracking-widest" id="password" name="password" placeholder="Enter certified credential" type="password" required />
+      </div>
+      <div style="height: 4px;"></div>
+      <!-- Primary CTA Button -->
+      <button class="btn btn-primary btn-full uppercase" type="submit">
+        SIGN IN
+      </button>
+      
+      <div class="pt-1">
+        <div class="text-center">
+          <a class="text-[13px] font-bold underline text-[#0D0D0D] hover:bg-[#EEFF00] px-1 py-0.5 transition-colors" href="{{ url_for('auth.signup') }}">
+            Don't have an account? Sign Up
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Metrological Card Base Footer -->
+  <div class="border-t-[2.5px] border-black bg-[#FAF9F6] px-6 py-3 flex items-center justify-between text-[11px] font-mono text-gray-600">
+    <span>GATEWAY // NOMINAL</span>
+    <span class="flex items-center gap-1.5 text-black font-bold">
+      <span class="w-2 h-2 bg-[#00E676] inline-block border border-black"></span>
+      CLASS III VERIFIED
+    </span>
+  </div>
+</div>
+
+<!-- Bottom Platform Micro Note -->
+<div class="mt-6 text-center z-10">
+  <div class="inline-block bg-white px-3 py-1 border-[1.5px] border-black shadow-[2px_2px_0px_#000] text-[10px] font-mono uppercase tracking-widest text-black">
+    NON-AUTOMATIC WEIGHING INSTRUMENT DIRECTIVE 2014/31/EU
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/cursor-grid.js') }}"></script>
+{% endblock %}

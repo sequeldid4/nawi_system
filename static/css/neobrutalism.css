@@ -590,3 +590,53 @@ td.fail-cell {
 
 
 
+
+/* AUTH SPECIFIC & META TOKENS */
+.auth-card {
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow-hover);
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  z-index: 10;
+}
+
+.error-banner {
+  background: var(--fail);
+  color: var(--surface);
+  border: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  background: rgba(255,255,255,0.2);
+  padding: 2px 6px;
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+.meta-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.inline-error {
+  font-size: 11px;
+  color: var(--fail);
+  font-weight: 700;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
