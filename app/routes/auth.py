@@ -85,7 +85,11 @@ def login():
                 return redirect(url_for('inspector.dashboard'))
                 
         except Exception as e:
-            flash("INVALID EMAIL OR PASSWORD", "error")
+            err_msg = str(e)
+            if "Email not confirmed" in err_msg:
+                flash("PLEASE CONFIRM YOUR EMAIL FIRST", "error")
+            else:
+                flash("INVALID EMAIL OR PASSWORD", "error")
             return render_template('auth/login.html')
 
     return render_template('auth/login.html')
