@@ -47,14 +47,25 @@
     {% if result %}
     <div class="result-panel {% if result.status == 'PASS' %}pass{% else %}fail{% endif %} stack">
         <h3 class="uppercase text-sm font-bold">Result</h3>
+        
         <div class="grid-2">
             <div>
-                <p>Threshold Req: <span class="result-value">&le; {{ result.threshold_required }}g</span></p>
+                <p>Additional Weight Applied: <span class="result-value">{{ additional_weight }}g</span></p>
             </div>
+            <div>
+                <p>Max Allowed (&le; 1.4d): <span class="result-value">{{ result.threshold_required }}g</span></p>
+            </div>
+        </div>
+        
+        <div class="grid-2">
             <div>
                 <p>Actual Change: <span class="result-value">{{ result.actual_change }}g</span></p>
             </div>
+            <div>
+                <p>Min Required (&ge; 1d): <span class="result-value">{{ d_value }}g</span></p>
+            </div>
         </div>
+        
         <p>Status: <span class="badge {% if result.status == 'PASS' %}badge-pass{% else %}badge-fail{% endif %} badge-lg">{{ result.status }}</span></p>
     </div>
     {% endif %}

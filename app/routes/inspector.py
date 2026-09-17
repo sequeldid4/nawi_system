@@ -409,7 +409,10 @@ def discrimination_test():
 
     next_url, next_label = get_next_test_info('discrimination')
     return render_template('discrimination_test.html', form=form,
-                          result=result, next_url=next_url, next_label=next_label)
+                          result=result, 
+                          d_value=form.d_value.data if form.is_submitted() else None,
+                          additional_weight=form.additional_weight.data if form.is_submitted() else None,
+                          next_url=next_url, next_label=next_label)
 
 @inspector_bp.route('/download-final-certificate')
 def download_final_certificate():
