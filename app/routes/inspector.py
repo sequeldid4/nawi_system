@@ -21,6 +21,8 @@ inspector_bp = Blueprint('inspector', __name__)
 
 @inspector_bp.before_request
 def require_login():
+    if request.endpoint == 'inspector.verify_certificate':
+        return
     if 'user_id' not in session:
         flash("PLEASE SIGN IN TO ACCESS THE PLATFORM.", "error")
         return redirect(url_for('auth.login'))
@@ -432,6 +434,8 @@ def download_final_certificate():
     cert_number = session.get('cert_number')
     pdf_hash = session.get('pdf_hash')
     
+    supabase_success = False
+    
     # Try Supabase route if configured
     if url and key:
         try:
@@ -454,6 +458,7 @@ def download_final_certificate():
                     discrimination = disc_res.data[0]
                     discrimination['deviation'] = discrimination.get('actual_change', 'N/A')
                     discrimination['mpe'] = discrimination.get('threshold_required', 'N/A')
+                    supabase_success = True
                     
                     vs_res = supabase.table('verification_sessions').select('*').eq('id', session_id).execute()
                     if vs_res.data:
@@ -480,18 +485,19 @@ def download_final_certificate():
             pass
 
     # Fallback to Flask Session generation
-    repeatability = test_results.get('repeatability', {'status': 'FAIL'})
-    if isinstance(repeatability, str): repeatability = {'status': repeatability}
+    if not supabase_success:
+        repeatability = test_results.get('repeatability', {'status': 'FAIL'})
+        if isinstance(repeatability, str): repeatability = {'status': repeatability}
     
-    eccentricity = test_results.get('eccentricity', {'status': 'FAIL'})
-    if isinstance(eccentricity, str): eccentricity = {'status': eccentricity}
+        eccentricity = test_results.get('eccentricity', {'status': 'FAIL'})
+        if isinstance(eccentricity, str): eccentricity = {'status': eccentricity}
     
-    weighing = test_results.get('weighing', {'status': 'FAIL'})
-    if isinstance(weighing, str): weighing = {'status': weighing}
-    discrimination = session.get('discrimination_detail')
-    if discrimination:
-        discrimination['deviation'] = discrimination.get('actual_change', 'N/A')
-        discrimination['mpe'] = discrimination.get('threshold_required', 'N/A')
+        weighing = test_results.get('weighing', {'status': 'FAIL'})
+        if isinstance(weighing, str): weighing = {'status': weighing}
+        discrimination = session.get('discrimination_detail')
+        if discrimination:
+            discrimination['deviation'] = discrimination.get('actual_change', 'N/A')
+            discrimination['mpe'] = discrimination.get('threshold_required', 'N/A')
     
     if not cert_number:
         cert_number = session.get('cert_number', f"NAWI-{datetime.now().year}-000001")
