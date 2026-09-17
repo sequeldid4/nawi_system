@@ -100,8 +100,38 @@
     </div>
     {% endif %}
 
+
     <div class="mt-4">
         <a href="{{ url_for('inspector.dashboard') }}" class="btn btn-ghost">&larr; Back to Dashboard</a>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const scaleTypeSelect = document.getElementById('scale_type');
+        const accuracyClassSelect = document.getElementById('accuracy_class');
+        
+        if (scaleTypeSelect && accuracyClassSelect) {
+            scaleTypeSelect.addEventListener('change', function(e) {
+                const selectedOption = scaleTypeSelect.options[scaleTypeSelect.selectedIndex];
+                const optgroup = selectedOption.parentNode;
+                
+                if (optgroup && optgroup.tagName === 'OPTGROUP') {
+                    const label = optgroup.label;
+                    let targetValue = '';
+                    
+                    if (label.includes('Class I (Special)')) targetValue = 'I';
+                    else if (label.includes('Class II (High)')) targetValue = 'II';
+                    else if (label.includes('Class III (Medium)')) targetValue = 'III';
+                    else if (label.includes('Class IIII (Ordinary)')) targetValue = 'IIII';
+                    
+                    if (targetValue) {
+                        accuracyClassSelect.value = targetValue;
+                    }
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
+

@@ -42,12 +42,29 @@ class InstrumentProfileForm(FlaskForm):
     # Instrument Specs
     model_num = StringField('Model Number', validators=[DataRequired()])
     serial_num = StringField('Serial Number', validators=[DataRequired()])
-    scale_type = SelectField('Scale Type', choices=[
-        ('tabletop', 'Electronic Tabletop'),
-        ('platform', 'Platform Scale'),
-        ('weighbridge', 'Weighbridge'),
-        ('precision', 'Precision Balance')
-    ], validators=[DataRequired()])
+    scale_type = SelectField('Scale Type', choices={
+        'Class I (Special)': [
+            ('Analytical Balance', 'Analytical Balance'),
+            ('Reference Balance', 'Reference Balance')
+        ],
+        'Class II (High)': [
+            ('Precision Balance', 'Precision Balance'),
+            ('Precious Metal Scale', 'Precious Metal Scale')
+        ],
+        'Class III (Medium)': [
+            ('Electronic Tabletop', 'Electronic Tabletop'),
+            ('Platform Scale', 'Platform Scale'),
+            ('Retail Trade Scale', 'Retail Trade Scale'),
+            ('Industrial Scale', 'Industrial Scale'),
+            ('Weighbridge', 'Weighbridge'),
+            ('Pallet Weigher', 'Pallet Weigher'),
+            ('Checkweigher', 'Checkweigher')
+        ],
+        'Class IIII (Ordinary)': [
+            ('Bulk Weighing Scale', 'Bulk Weighing Scale'),
+            ('Non-Trade Industrial Scale', 'Non-Trade Industrial Scale')
+        ]
+    }, validators=[DataRequired()])
     
     # Metrological Data
     accuracy_class = SelectField('Accuracy Class', choices=ACCURACY_CHOICES, validators=[DataRequired()])
