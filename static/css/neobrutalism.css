@@ -640,3 +640,127 @@ td.fail-cell {
   align-items: center;
   gap: 4px;
 }
+
+/* Custom Neubrutalist Dropdown */
+.neo-select-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.neo-select-wrap select {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  height: 1px;
+  width: 1px;
+}
+
+.neo-select-trigger {
+  width: 100%;
+  height: 48px;
+  padding: 0 40px 0 14px;
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  box-shadow: 3px 3px 0px var(--border);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+
+.neo-select-trigger::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-right: 3px solid var(--text);
+  border-bottom: 3px solid var(--text);
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 150ms ease-out;
+}
+
+.neo-select-trigger.open::after {
+  transform: translateY(-30%) rotate(225deg);
+}
+
+.neo-select-trigger.open {
+  background: #FAFFA0;
+}
+
+.neo-select-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  box-shadow: 5px 5px 0px var(--border);
+  max-height: 0;
+  overflow-y: auto;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: max-height 180ms ease-out, opacity 150ms ease-out, transform 150ms ease-out;
+  pointer-events: none;
+}
+
+.neo-select-panel.open {
+  max-height: 320px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.neo-select-panel::-webkit-scrollbar {
+  width: 10px;
+}
+.neo-select-panel::-webkit-scrollbar-track {
+  background: var(--surface);
+  border-left: 2px solid var(--border);
+}
+.neo-select-panel::-webkit-scrollbar-thumb {
+  background: var(--text);
+  border: 2px solid var(--surface);
+}
+.neo-select-panel {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text) var(--surface);
+}
+
+.neo-optgroup-label {
+  background: var(--header-bg);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 8px 14px;
+  position: sticky;
+  top: 0;
+}
+
+.neo-option {
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 1px solid #EEEEEE;
+}
+
+.neo-option:hover,
+.neo-option.highlighted {
+  background: var(--accent);
+}
+
+.neo-option.selected {
+  background: var(--accent-hover);
+  font-weight: 700;
+}

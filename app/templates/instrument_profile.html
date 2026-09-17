@@ -40,7 +40,7 @@
                 </div>
                 <div>
                     <label class="field-label">{{ form.scale_type.label.text }}</label>
-                    {{ form.scale_type(class="select-field") }}
+                    {{ form.scale_type(class="select-field", **{"data-neo-select": "true"}) }}
                 </div>
             </div>
         </div>
@@ -50,7 +50,7 @@
             <div class="grid-2">
                 <div>
                     <label class="field-label">{{ form.accuracy_class.label.text }}</label>
-                    {{ form.accuracy_class(class="select-field") }}
+                    {{ form.accuracy_class(class="select-field", **{"data-neo-select": "true"}) }}
                 </div>
                 <div>
                     <label class="field-label">{{ form.max_capacity.label.text }}</label>
@@ -127,6 +127,7 @@
                     
                     if (targetValue) {
                         accuracyClassSelect.value = targetValue;
+                        accuracyClassSelect.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }
             });
