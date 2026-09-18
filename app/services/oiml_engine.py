@@ -1,3 +1,22 @@
+
+def format_to_instrument_precision(value, e):
+    if value is None or e is None:
+        return value
+    try:
+        e_val = float(e)
+        val = float(value)
+        e_str = f"{e_val:f}".rstrip('0')
+        if e_str.endswith('.'):
+            e_str = e_str[:-1]
+        if '.' in e_str:
+            decimals_in_e = len(e_str.split('.')[1])
+        else:
+            decimals_in_e = 0
+        target_decimals = decimals_in_e + 1
+        return f"{val:.{target_decimals}f}"
+    except (ValueError, TypeError):
+        return value
+
 def get_mpe(load, e, accuracy_class='III', test_type='initial'):
     """
     Calculate Maximum Permissible Errors (MPE) based on OIML R-76 Table 6.
@@ -90,8 +109,8 @@ def evaluate_discrimination(reading_before, reading_after, additional_weight, d)
     weight_within_threshold = additional_weight <= threshold_required
     status = 'PASS' if (change_detected and weight_within_threshold) else 'FAIL'
     return {
-        'threshold_required': round(threshold_required, 3),
-        'actual_change': round(abs(reading_after - reading_before), 3),
+        'threshold_required': threshold_required,
+        'actual_change': abs(reading_after - reading_before),
         'change_detected': change_detected,
         'status': status
     }

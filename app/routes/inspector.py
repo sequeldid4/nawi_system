@@ -13,7 +13,7 @@ from wtforms.validators import DataRequired, ValidationError
 from supabase_client import supabase
 from flask import flash
 from app.services.pdf_generator import generate_secure_certificate
-from app.services.oiml_engine import get_mpe, check_pass_fail, check_repeatability, check_eccentricity
+from app.services.oiml_engine import get_mpe, check_pass_fail, check_repeatability, check_eccentricity, format_to_instrument_precision
 from app.services.oiml_engine import validate_instrument_class
 from app.services.oiml_engine import evaluate_discrimination
 
@@ -281,7 +281,7 @@ def repeatability_test():
         mpe_limit = get_mpe(load, e, acc_class)
         if mpe_limit is not None:
             result = check_repeatability(readings, mpe_limit)
-            max_diff = round(max(readings) - min(readings), 2)
+            max_diff = format_to_instrument_precision(max(readings) - min(readings), e)
             
             # Save result to session
             if 'test_results' not in session: session['test_results'] = {}
@@ -317,7 +317,7 @@ def eccentricity_test():
         mpe_limit = get_mpe(load, e, acc_class)
         if mpe_limit is not None:
             result = check_eccentricity(load, readings, mpe_limit)
-            max_dev = round(max(abs(r - load) for r in readings), 2)
+            max_dev = format_to_instrument_precision(max(abs(r - load) for r in readings), e)
             
             if 'test_results' not in session: session['test_results'] = {}
             session['test_results']['eccentricity'] = {
@@ -352,7 +352,7 @@ def weighing_test():
         mpe_limit = get_mpe(load, e, acc_class)
         if mpe_limit is not None:
             result = check_pass_fail(load, displayed, mpe_limit)
-            error = round(abs(displayed - load), 2)
+            error = format_to_instrument_precision(abs(displayed - load), e)
             
             if 'test_results' not in session: session['test_results'] = {}
             session['test_results']['weighing'] = {
@@ -387,6 +387,8 @@ def discrimination_test():
         result = evaluate_discrimination(before, after, added, d)
 
         if result is not None:
+            result['threshold_required'] = format_to_instrument_precision(result['threshold_required'], d)
+            result['actual_change'] = format_to_instrument_precision(result['actual_change'], d)
             if 'test_results' not in session: 
                 session['test_results'] = {}
             session['test_results']['discrimination'] = result['status']
