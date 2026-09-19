@@ -1,3 +1,19 @@
+FLOAT_PRECISION = 9  # decimal places — far finer than any real e/d
+                      # value in this domain (finest is ~0.0001g),
+                      # so this only strips floating-point noise,
+                      # never real instrument precision
+
+def safe_round(value):
+    return round(value, FLOAT_PRECISION)
+
+def le(a, b):
+    """a <= b, immune to floating-point subtraction noise"""
+    return safe_round(a) <= safe_round(b)
+
+def ge(a, b):
+    """a >= b, immune to floating-point subtraction noise"""
+    return safe_round(a) >= safe_round(b)
+
 
 def format_to_instrument_precision(value, e):
     if value is None or e is None:
@@ -64,7 +80,7 @@ def get_mpe(load, e, accuracy_class='III', test_type='initial'):
     if test_type == 'in-service':
         mpe_multiplier *= 2
 
-    return mpe_multiplier * e
+    return safe_round(mpe_multiplier * e)
 
 
 def check_pass_fail(actual_weight, displayed_weight, mpe):
@@ -72,7 +88,7 @@ def check_pass_fail(actual_weight, displayed_weight, mpe):
     Evaluates if the error is within legal limits.
     """
     error = abs(displayed_weight - actual_weight)
-    return "PASS" if error <= mpe else "FAIL"
+    return "PASS" if le(error, mpe) else "FAIL"
 
 def check_repeatability(readings, mpe):
     """
@@ -82,14 +98,14 @@ def check_repeatability(readings, mpe):
     if not readings: return "FAIL"
     max_val = max(readings)
     min_val = min(readings)
-    return "PASS" if (max_val - min_val) <= mpe else "FAIL"
+    return "PASS" if le((max_val - min_val), mpe) else "FAIL"
 
 def check_eccentricity(actual_weight, readings, mpe):
     """
     OIML R-76: The error at any off-center position must not exceed the MPE.
     """
     for r in readings:
-        if abs(r - actual_weight) > mpe:
+        if not le(abs(r - actual_weight), mpe):
             return "FAIL"
     return "PASS"
 
@@ -105,8 +121,8 @@ def evaluate_discrimination(reading_before, reading_after, additional_weight, d)
     if d <= 0:
         return None
     threshold_required = 1.4 * d
-    change_detected = abs(reading_after - reading_before) >= d
-    weight_within_threshold = additional_weight <= threshold_required
+    change_detected = ge(abs(reading_after - reading_before), d)
+    weight_within_threshold = le(additional_weight, threshold_required)
     status = 'PASS' if (change_detected and weight_within_threshold) else 'FAIL'
     return {
         'threshold_required': threshold_required,
