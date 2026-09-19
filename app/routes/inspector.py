@@ -70,8 +70,8 @@ class InstrumentProfileForm(FlaskForm):
     
     # Metrological Data
     accuracy_class = SelectField('Accuracy Class', choices=ACCURACY_CHOICES, validators=[DataRequired()])
-    max_capacity = FloatField('Max Capacity', validators=[DataRequired()])
-    min_capacity = FloatField('Min Capacity', validators=[DataRequired()])
+    max_capacity = FloatField('Max Capacity (g)', validators=[DataRequired()])
+    min_capacity = FloatField('Min Capacity (g)', validators=[DataRequired()])
     e_value = FloatField('Verification Scale Interval (e)', validators=[DataRequired()])
     d_value = FloatField('Actual Scale Interval (d)', validators=[DataRequired()])
     
