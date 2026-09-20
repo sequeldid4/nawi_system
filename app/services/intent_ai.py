@@ -3,7 +3,7 @@ import os
 
 _client = OpenAI(
     base_url="https://router.huggingface.co/v1",
-    api_key=os.environ.get("HF_TOKEN", ""),
+    api_key=os.environ.get("HF_TOKEN", "dummy_token_to_prevent_import_crash"),
 )
 
 INTENT_MODEL = "Qwen/Qwen2.5-7B-Instruct:cheapest"
@@ -36,8 +36,7 @@ def explain_result(test_context: dict, follow_up: str | None = None) -> str:
         f"Result: {test_context['pass_fail']}"
     )
     
-    # Check if HF_TOKEN is actually set to avoid crashing if it's empty
-    if not os.environ.get("HF_TOKEN"):
+    if not os.environ.get("HF_TOKEN") or os.environ.get("HF_TOKEN") == "dummy_token_to_prevent_import_crash":
         raise ValueError("HF_TOKEN is not set.")
         
     response = _client.chat.completions.create(
