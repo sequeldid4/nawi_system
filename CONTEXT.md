@@ -40,3 +40,11 @@ It serves as the single source of truth for design tokens, components, and rules
 2. **Shadows**: Only hard, offset box-shadows are permitted (`X Y 0px #000000`). No blur or spread.
 3. **Button Hover Effects**: Translate elements diagonally (`transform: translate(-2px, -2px)`) and increase shadow size. Active state pushes elements back (`transform: translate(4px, 4px)`) and drops shadow to `0px`.
 4. **Input Focus**: Inputs must turn `#FAFFA0` (pale yellow) on focus, while maintaining their thick black border and acquiring the default box-shadow.
+
+### "Intent" AI Component
+The "Intent" AI assistant is an embedded compliance explainer that visually matches the brutalist technical documentation aesthetic:
+- **Container Structure**: A stark, un-rounded container matching standard card borders (`2px solid #000`, `box-shadow: 4px 4px 0 #000`, `border-radius: 0`).
+- **Section Header**: Employs a high-contrast inverse strip (`background: #000`, `color: #fff`) with the title `INTENT — COMPLIANCE ASSISTANT` written in `.meta-tag` / `.badge-code` typography (`JetBrains Mono`, `0.8rem`, `bold`).
+- **Action Button ("Ask Intent")**: Styled as an inset brutalist badge (`.badge-code` override: `background: #fff`, `color: #000`, `border: none`) nested tightly within the dark header strip.
+- **Reply Chat-Bubble Panel**: Appears structurally attached below the header (`border-top: 2px solid #000`), with an off-white background (`#fdfdfd`) and regular `Space Grotesk` typography (`0.95rem`) for readability.
+- **Follow-Up Input (V2)**: Uses a standard brutalist text input (`border: 2px solid #000`) and a dark button (`.btn-dark`) for continuity with primary UI forms, separated by a dashed divider (`1px dashed #ccc`).

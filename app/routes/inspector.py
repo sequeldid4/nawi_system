@@ -288,7 +288,8 @@ def repeatability_test():
             session['test_results']['repeatability'] = {
                 'status': result,
                 'mpe': mpe_limit,
-                'max_difference': max_diff
+                'max_difference': max_diff,
+                'inputs': f"Readings: {readings}, Load: {load}"
             }
             session.modified = True
         else:
@@ -323,7 +324,8 @@ def eccentricity_test():
             session['test_results']['eccentricity'] = {
                 'status': result,
                 'mpe': mpe_limit,
-                'max_deviation': max_dev
+                'max_deviation': max_dev,
+                'inputs': f"Readings: {readings}, Load: {load}"
             }
             session.modified = True
         else:
@@ -358,7 +360,8 @@ def weighing_test():
             session['test_results']['weighing'] = {
                 'status': result,
                 'mpe': mpe_limit,
-                'error': error
+                'error': error,
+                'inputs': f"Displayed: {displayed}, Load: {load}"
             }
             session.modified = True
         else:
@@ -392,6 +395,7 @@ def discrimination_test():
             if 'test_results' not in session: 
                 session['test_results'] = {}
             session['test_results']['discrimination'] = result['status']
+            result['inputs'] = f"Reading Before: {before}, Reading After: {after}, Added Weight: {added}"
             session['discrimination_detail'] = result
             session.modified = True
             
@@ -415,6 +419,79 @@ def discrimination_test():
                           d_value=form.d_value.data if form.is_submitted() else None,
                           additional_weight=form.additional_weight.data if form.is_submitted() else None,
                           next_url=next_url, next_label=next_label)
+
+
+from app.services.intent_ai import explain_result
+
+@inspector_bp.route('/api/intent/explain', methods=['POST'])
+def api_intent_explain():
+    intent_count = session.get('intent_count', 0)
+    if intent_count >= 20:
+        return jsonify({"reply": "Intent is unavailable right now — rate limit exceeded."}), 200
+        
+    data = request.get_json() or {}
+    test_id = data.get('test_instance_id')
+    follow_up = data.get('follow_up')
+    
+    test_results = session.get('test_results', {})
+    
+    try:
+        if test_id == 'repeatability':
+            res = test_results.get('repeatability')
+            if not res: return jsonify({"reply": "No data found."}), 200
+            test_context = {
+                'test_name': 'Repeatability Test',
+                'source_ref': 'OIML R-76 Section 3.6.1',
+                'inputs': res.get('inputs', 'N/A'),
+                'calculated_value': res.get('max_difference', 'N/A'),
+                'mpe_or_threshold': f"+/- {res.get('mpe', 'N/A')}",
+                'pass_fail': res.get('status', 'N/A')
+            }
+        elif test_id == 'eccentricity':
+            res = test_results.get('eccentricity')
+            if not res: return jsonify({"reply": "No data found."}), 200
+            test_context = {
+                'test_name': 'Eccentricity Test',
+                'source_ref': 'OIML R-76 Section 3.6.2',
+                'inputs': res.get('inputs', 'N/A'),
+                'calculated_value': res.get('max_deviation', 'N/A'),
+                'mpe_or_threshold': f"+/- {res.get('mpe', 'N/A')}",
+                'pass_fail': res.get('status', 'N/A')
+            }
+        elif test_id == 'weighing':
+            res = test_results.get('weighing')
+            if not res: return jsonify({"reply": "No data found."}), 200
+            test_context = {
+                'test_name': 'Weighing Test',
+                'source_ref': 'OIML R-76 Section 3.5.1',
+                'inputs': res.get('inputs', 'N/A'),
+                'calculated_value': res.get('error', 'N/A'),
+                'mpe_or_threshold': f"+/- {res.get('mpe', 'N/A')}",
+                'pass_fail': res.get('status', 'N/A')
+            }
+        elif test_id == 'discrimination':
+            res = session.get('discrimination_detail')
+            if not res: return jsonify({"reply": "No data found."}), 200
+            test_context = {
+                'test_name': 'Discrimination Test',
+                'source_ref': 'OIML R-76 Section 3.6.3',
+                'inputs': res.get('inputs', 'N/A'),
+                'calculated_value': f"Actual Change: {res.get('actual_change', 'N/A')}",
+                'mpe_or_threshold': f"Max Weight Allowed: <= {res.get('threshold_required', 'N/A')}",
+                'pass_fail': res.get('status', 'N/A')
+            }
+        else:
+            return jsonify({"reply": "Unknown test instance."}), 200
+
+        reply = explain_result(test_context, follow_up)
+        
+        session['intent_count'] = intent_count + 1
+        session.modified = True
+        return jsonify({"reply": reply}), 200
+        
+    except Exception as e:
+        return jsonify({"reply": "Intent is unavailable right now — showing raw result only"}), 200
+
 
 @inspector_bp.route('/download-final-certificate')
 def download_final_certificate():

@@ -68,6 +68,115 @@
         
         <p>Status: <span class="badge {% if result.status == 'PASS' %}badge-pass{% else %}badge-fail{% endif %} badge-lg">{{ result.status }}</span></p>
     </div>
+
+    <!-- INTENT COMPONENT -->
+    <div class="intent-container mt-4" style="border: 2px solid #000; border-radius: 0; background: #fff; box-shadow: 4px 4px 0 #000;">
+        <div class="section-header" style="background: #000; color: #fff; padding: 0.5rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: bold;">INTENT — COMPLIANCE ASSISTANT</span>
+            <button id="btn-intent" class="badge-code" style="cursor: pointer; background: #fff; color: #000; border: none; padding: 0.2rem 0.5rem; font-family: 'JetBrains Mono', monospace; font-weight: bold;">🔍 Ask Intent</button>
+        </div>
+        <div id="intent-reply-container" style="display: none; padding: 1rem; border-top: 2px solid #000; background: #fdfdfd;">
+            <div id="intent-loading" style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: bold; color: #555; display: none;">INTENT IS THINKING...</div>
+            <div id="intent-reply" style="font-size: 0.95rem; line-height: 1.5; font-family: 'Space Grotesk', sans-serif;"></div>
+            
+            <div id="intent-followup-container" style="display: none; margin-top: 1rem; border-top: 1px dashed #ccc; padding-top: 1rem;">
+                <input type="text" id="intent-followup-input" placeholder="Ask a follow-up question..." style="width: 100%; border: 2px solid #000; padding: 0.5rem; font-family: 'Space Grotesk', sans-serif; margin-bottom: 0.5rem;">
+                <button id="btn-intent-followup" class="btn btn-dark" style="width: 100%; padding: 0.5rem; font-size: 0.8rem;">Send Follow-up</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('btn-intent');
+        const container = document.getElementById('intent-reply-container');
+        const loading = document.getElementById('intent-loading');
+        const replyDiv = document.getElementById('intent-reply');
+        
+        const followupContainer = document.getElementById('intent-followup-container');
+        const followupInput = document.getElementById('intent-followup-input');
+        const followupBtn = document.getElementById('btn-intent-followup');
+        
+        const testInstanceId = "discrimination";
+        const sessionKey = 'intent_v1_' + testInstanceId;
+        
+        let cachedReply = sessionStorage.getItem(sessionKey);
+        if (cachedReply) {
+            replyDiv.innerHTML = cachedReply;
+            container.style.display = 'block';
+            followupContainer.style.display = 'block';
+            btn.style.display = 'none';
+        }
+        
+        const fetchIntent = async (followUpText = null) => {
+            btn.style.display = 'none';
+            container.style.display = 'block';
+            
+            let originalContent = replyDiv.innerHTML;
+            
+            if (followUpText) {
+                replyDiv.innerHTML += `<br><br><strong>You:</strong> ${followUpText}<br>`;
+                followupContainer.style.display = 'none';
+            } else {
+                replyDiv.innerHTML = '';
+            }
+            
+            loading.style.display = 'block';
+            
+            try {
+                const res = await fetch('/inspector/api/intent/explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ test_instance_id: testInstanceId, follow_up: followUpText })
+                });
+                const data = await res.json();
+                
+                if (followUpText) {
+                    replyDiv.innerHTML += `<br><strong>Intent:</strong> ${data.reply}`;
+                } else {
+                    replyDiv.innerHTML = data.reply;
+                }
+                
+                // Cache ONLY the initial explanation to avoid storing giant threads forever
+                if (!followUpText && res.ok) {
+                    sessionStorage.setItem(sessionKey, data.reply);
+                }
+            } catch (e) {
+                if (followUpText) {
+                    replyDiv.innerHTML += `<br><strong>Intent:</strong> Intent is unavailable right now.`;
+                } else {
+                    replyDiv.innerHTML = "Intent is unavailable right now — showing raw result only";
+                }
+            }
+            
+            loading.style.display = 'none';
+            followupContainer.style.display = 'block';
+            followupInput.value = '';
+        };
+
+        if (btn) {
+            btn.addEventListener('click', () => fetchIntent(null));
+        }
+        
+        if (followupBtn) {
+            followupBtn.addEventListener('click', () => {
+                if(followupInput.value.trim()) {
+                    fetchIntent(followupInput.value.trim());
+                }
+            });
+        }
+        
+        if (followupInput) {
+            followupInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && followupInput.value.trim()) {
+                    fetchIntent(followupInput.value.trim());
+                }
+            });
+        }
+    });
+    </script>
+    <!-- END INTENT COMPONENT -->
+
     {% endif %}
 
     <div class="mt-4">
