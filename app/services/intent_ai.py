@@ -1,7 +1,7 @@
 import os
 from openai import OpenAI
 
-INTENT_MODEL = "meta-llama/Llama-3.1-8B-Instruct"
+INTENT_MODEL = "Qwen/Qwen2.5-72B-Instruct"
 
 SYSTEM_PROMPT = """You are Intent, the compliance-explainer assistant inside the NAWI 
 Test Report System, a legal metrology tool for OIML R76 verification of weighing 
