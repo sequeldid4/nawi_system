@@ -490,7 +490,9 @@ def api_intent_explain():
         return jsonify({"reply": reply}), 200
         
     except Exception as e:
-        return jsonify({"reply": "Intent is unavailable right now — showing raw result only"}), 200
+        import traceback
+        err_msg = traceback.format_exc()
+        return jsonify({"reply": f"Intent error: {str(e)}<br><br>{err_msg.replace(chr(10), '<br>')} "}), 200
 
 
 @inspector_bp.route('/download-final-certificate')
