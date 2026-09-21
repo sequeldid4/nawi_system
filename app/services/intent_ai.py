@@ -1,12 +1,7 @@
-from openai import OpenAI
 import os
+from openai import OpenAI
 
-_client = OpenAI(
-    base_url="https://router.huggingface.co/v1",
-    api_key=os.environ.get("HF_TOKEN", "dummy_token_to_prevent_import_crash"),
-)
-
-INTENT_MODEL = "Qwen/Qwen2.5-7B-Instruct:cheapest"
+INTENT_MODEL = "meta-llama/Llama-3.1-8B-Instruct"
 
 SYSTEM_PROMPT = """You are Intent, the compliance-explainer assistant inside the NAWI 
 Test Report System, a legal metrology tool for OIML R76 verification of weighing 
@@ -26,6 +21,16 @@ STRICT RULES:
 def explain_result(test_context: dict, follow_up: str | None = None) -> str:
     """test_context must include: test_name, source_ref (OIML clause), inputs 
     (the actual readings/loads), calculated_value, mpe_or_threshold, pass_fail."""
+    
+    token = os.environ.get("HF_TOKEN")
+    if not token or token == "dummy_token_to_prevent_import_crash":
+        raise ValueError("HF_TOKEN is not set.")
+        
+    client = OpenAI(
+        base_url="https://router.huggingface.co/v1",
+        api_key=token,
+    )
+    
     user_msg = follow_up or (
         f"Explain this result in plain language:\n"
         f"Test: {test_context['test_name']}\n"
@@ -36,10 +41,7 @@ def explain_result(test_context: dict, follow_up: str | None = None) -> str:
         f"Result: {test_context['pass_fail']}"
     )
     
-    if not os.environ.get("HF_TOKEN") or os.environ.get("HF_TOKEN") == "dummy_token_to_prevent_import_crash":
-        raise ValueError("HF_TOKEN is not set.")
-        
-    response = _client.chat.completions.create(
+    response = client.chat.completions.create(
         model=INTENT_MODEL,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
