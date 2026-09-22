@@ -1,7 +1,7 @@
 import os
 from openai import OpenAI
 
-INTENT_MODEL = "Qwen/Qwen2.5-72B-Instruct"
+INTENT_MODEL = "deepseek-ai/DeepSeek-V4-Flash"
 
 SYSTEM_PROMPT = """You are Intent, the compliance-explainer assistant inside the NAWI 
 Test Report System, a legal metrology tool for OIML R76 verification of weighing 
@@ -47,7 +47,7 @@ def explain_result(test_context: dict, follow_up: str | None = None) -> str:
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_msg},
         ],
-        max_tokens=350,
+        max_tokens=150,
         temperature=0.3,
     )
     return response.choices[0].message.content
