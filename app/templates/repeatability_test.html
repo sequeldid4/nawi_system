@@ -206,7 +206,7 @@
                 }
             } catch (e) {
                 loading.style.display = 'none';
-                const errText = "Intent is unavailable right now.";
+                const errText = "JS Error: " + e.message + (e.response ? " | " + e.response.status : "");
                 appendAnimatedMessage(errText, false);
             }
             
