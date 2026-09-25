@@ -196,6 +196,7 @@
                 const res = await fetch('/inspector/api/intent/explain', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
                     body: JSON.stringify({ test_instance_id: testInstanceId, follow_up: followUpText })
                 });
                 const data = await res.json();
