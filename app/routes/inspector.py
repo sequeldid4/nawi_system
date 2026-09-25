@@ -6,7 +6,7 @@ try:
 except ImportError:
     pass
 from supabase_client import supabase
-from flask import Blueprint, render_template, request, redirect, url_for, session, send_file
+from flask import Blueprint, render_template, jsonify, request, redirect, url_for, session, send_file
 from flask_wtf import FlaskForm
 from wtforms import FloatField, SelectField, SubmitField, StringField, TextAreaField
 from wtforms.validators import DataRequired, ValidationError
