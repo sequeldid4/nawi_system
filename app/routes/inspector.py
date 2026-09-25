@@ -426,7 +426,7 @@ from app.services.intent_ai import explain_result
 @inspector_bp.route('/api/intent/explain', methods=['POST'])
 def api_intent_explain():
     intent_count = session.get('intent_count', 0)
-    if intent_count >= 20:
+    if intent_count >= 500:
         return jsonify({"reply": "Intent is unavailable right now — rate limit exceeded."}), 200
         
     data = request.get_json() or {}
