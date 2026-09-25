@@ -62,7 +62,20 @@
         </div>
         <div id="intent-body-wrapper" style="display: none; flex-direction: column;">
             <div id="intent-reply-container" style="padding: 1rem; border-top: 2px solid #000; background: #fdfdfd; max-height: 300px; overflow-y: auto; scroll-behavior: smooth;">
-                <div id="intent-loading" style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: bold; color: #555; display: none; margin-bottom: 1rem;">INTENT IS THINKING...</div>
+                <div id="intent-loading" style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: bold; color: #555; display: none; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <span>INTENT IS THINKING</span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="intent-loading-dots" style="color: currentColor;">
+                        <circle cx="4" cy="12" r="2" fill="currentColor">
+                            <animate id="spinner_qFRN" begin="0;spinner_OcgL.end+0.25s" attributeName="cy" calcMode="spline" dur="0.6s" values="12;6;12" keySplines=".33,.66,.66,1;.33,0,.66,.33" />
+                        </circle>
+                        <circle cx="12" cy="12" r="2" fill="currentColor">
+                            <animate begin="spinner_qFRN.begin+0.1s" attributeName="cy" calcMode="spline" dur="0.6s" values="12;6;12" keySplines=".33,.66,.66,1;.33,0,.66,.33" />
+                        </circle>
+                        <circle cx="20" cy="12" r="2" fill="currentColor">
+                            <animate id="spinner_OcgL" begin="spinner_qFRN.begin+0.2s" attributeName="cy" calcMode="spline" dur="0.6s" values="12;6;12" keySplines=".33,.66,.66,1;.33,0,.66,.33" />
+                        </circle>
+                    </svg>
+                </div>
                 <div id="intent-reply" style="font-size: 0.95rem; line-height: 1.5; font-family: 'Space Grotesk', sans-serif;"></div>
             </div>
             <div id="intent-followup-container" style="display: none; border-top: 1px dashed #ccc; padding: 1rem; background: #fdfdfd;">
@@ -171,7 +184,7 @@
                 followupContainer.style.display = 'none';
             }
             
-            loading.style.display = 'block';
+            loading.style.display = 'flex';
             replyContainer.scrollTop = replyContainer.scrollHeight;
             
             try {
