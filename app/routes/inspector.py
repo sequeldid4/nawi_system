@@ -21,7 +21,7 @@ inspector_bp = Blueprint('inspector', __name__)
 
 @inspector_bp.before_request
 def require_login():
-    if request.endpoint == 'inspector.verify_certificate':
+    if request.endpoint in ['inspector.verify_certificate', 'inspector.api_intent_explain']:
         return
     if 'user_id' not in session:
         flash("PLEASE SIGN IN TO ACCESS THE PLATFORM.", "error")
