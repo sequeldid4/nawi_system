@@ -28,6 +28,23 @@
         Field Conformity</div>
 </div>
 
+{% if stats %}
+<!-- History Stats Summary Widget -->
+<div class="card mb-8" style="padding: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h3 class="section-header" style="margin-bottom: 0.5rem; font-size: 1.2rem;">Verification History Summary</h3>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;">
+                Total: <strong>{{ stats.total }}</strong> | 
+                <span style="color: #1a7f37;">PASS: <strong>{{ stats.pass }}</strong></span> | 
+                <span style="color: #d1242f;">FAIL: <strong>{{ stats.fail }}</strong></span>
+            </div>
+        </div>
+        <a href="{{ url_for('inspector.history') }}" class="btn btn-dark" style="font-size: 0.85rem;">View All Reports</a>
+    </div>
+</div>
+{% endif %}
+
 <div class="stack">
     <!-- Dynamic Instrument Profile Setup Banner -->
     <a href="{{ url_for('inspector.instrument_profile') }}" class="card card-accent-top"

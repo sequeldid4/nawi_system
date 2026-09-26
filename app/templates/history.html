@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}History - NAWI System{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 class="section-header" style="margin-bottom: 0;">Reports Repository</h2>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <input type="text" id="search-input" placeholder="Search S/N or Model..." style="padding: 0.5rem; border: 2px solid #000; font-family: 'Space Grotesk', sans-serif;">
+            <select id="status-filter" style="padding: 0.5rem; border: 2px solid #000; font-family: 'Space Grotesk', sans-serif; cursor: pointer;">
+                <option value="ALL">All Status</option>
+                <option value="PASS">Pass</option>
+                <option value="FAIL">Fail</option>
+            </select>
+        </div>
+    </div>
+    
+    <div id="records-list" style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for r in records %}
+        {% set inst = r.instrument_profiles or {} %}
+        {% set status_class = 'badge-pass' if r.overall_status == 'PASS' else 'badge-fail' %}
+        
+        <div class="history-record card" style="border: 2px solid #000; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;" data-search="{{ inst.get('serial_number', '') | lower }} {{ inst.get('model_number', '') | lower }}" data-status="{{ r.overall_status | upper }}">
+            <div>
+                <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem;">{{ inst.get('manufacturer_name', 'Unknown') }} - {{ inst.get('model_number', 'Unknown') }}</h3>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: #555;">S/N: {{ inst.get('serial_number', 'N/A') }}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; margin-top: 0.5rem;">Completed: {{ r.get('completed_at', r.get('created_at', 'Unknown'))[:10] }}</div>
+                {% if r.cert_number %}
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: bold; margin-top: 0.2rem;">Cert: {{ r.cert_number }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 1rem;">
+                <div class="{{ status_class }}" style="padding: 0.3rem 1rem; border: 2px solid #000; font-weight: bold;">
+                    {{ r.overall_status or 'FAIL' }}
+                </div>
+                <a href="{{ url_for('inspector.download_certificate_by_id', session_id=r.id) }}" class="btn btn-dark" style="font-size: 0.85rem; padding: 0.4rem 1rem;">View Certificate</a>
+            </div>
+        </div>
+        {% else %}
+        <div style="padding: 2rem; text-align: center; font-family: 'Space Grotesk', sans-serif;">
+            No verification sessions found in your history.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('status-filter');
+    const records = document.querySelectorAll('.history-record');
+    
+    function filterRecords() {
+        const query = searchInput.value.toLowerCase();
+        const status = statusFilter.value;
+        
+        records.forEach(r => {
+            const matchSearch = r.getAttribute('data-search').includes(query);
+            const rStatus = r.getAttribute('data-status');
+            const matchStatus = status === 'ALL' || rStatus === status || (!rStatus && status === 'FAIL'); 
+            
+            if (matchSearch && matchStatus) {
+                r.style.display = 'flex';
+            } else {
+                r.style.display = 'none';
+            }
+        });
+    }
+    
+    searchInput.addEventListener('input', filterRecords);
+    statusFilter.addEventListener('change', filterRecords);
+});
+</script>
+{% endblock %}
