@@ -25,7 +25,7 @@
             <div>
                 <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem;">{{ inst.get('manufacturer_name', 'Unknown') }} - {{ inst.get('model_number', 'Unknown') }}</h3>
                 <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: #555;">S/N: {{ inst.get('serial_number', 'N/A') }}</div>
-                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; margin-top: 0.5rem;">Completed: {{ r.get('completed_at', r.get('created_at', 'Unknown'))[:10] }}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; margin-top: 0.5rem;">Completed: {{ (r.get('completed_at') or r.get('created_at') or 'Unknown')[:10] }}</div>
                 {% if r.cert_number %}
                 <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: bold; margin-top: 0.2rem;">Cert: {{ r.cert_number }}</div>
                 {% endif %}
