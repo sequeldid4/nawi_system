@@ -612,6 +612,23 @@ def download_final_certificate():
     from app.services.pdf_generator import generate_secure_certificate
     from flask import send_file
     
+    from flask import request
+    file_format = request.args.get('format', 'pdf')
+
+    if file_format == 'docx':
+        from app.services.docx_generator import generate_word_certificate
+        buffer = generate_word_certificate(
+            cert_number, profile, repeatability, eccentricity,
+            weighing, discrimination, overall_status, completed_at,
+            pdf_hash, base_url
+        )
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=f"{cert_number}.docx",
+            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+    
     pdf_buffer = generate_secure_certificate(
         cert_number=cert_number,
         instrument=profile,
