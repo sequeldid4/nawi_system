@@ -553,16 +553,24 @@ def download_final_certificate():
                 
                 if rep_res.data and ecc_res.data and weigh_res.data and disc_res.data:
                     repeatability = rep_res.data[0]
+                    if not repeatability.get('status'):
+                        repeatability['status'] = 'FAIL'
                     eccentricity = ecc_res.data[0]
+                    if not eccentricity.get('status'):
+                        eccentricity['status'] = 'FAIL'
                     weighing = weigh_res.data[0]
+                    if not weighing.get('status'):
+                        weighing['status'] = 'FAIL'
                     discrimination = disc_res.data[0]
+                    if not discrimination.get('status'):
+                        discrimination['status'] = 'FAIL'
                     discrimination['deviation'] = discrimination.get('actual_change', 'N/A')
                     discrimination['mpe'] = discrimination.get('threshold_required', 'N/A')
                     supabase_success = True
                     
                     vs_res = supabase.table('verification_sessions').select('*').eq('id', session_id).execute()
                     if vs_res.data:
-                        overall_status = vs_res.data[0].get('overall_status', overall_status)
+                        overall_status = vs_res.data[0].get('overall_status') or overall_status
                         completed_at = vs_res.data[0].get('created_at', completed_at)
                         cert_number = vs_res.data[0].get('cert_number')
                         pdf_hash = vs_res.data[0].get('pdf_hash')
@@ -600,7 +608,7 @@ def download_final_certificate():
             discrimination['mpe'] = discrimination.get('threshold_required', 'N/A')
     
     if not cert_number:
-        cert_number = session.get('cert_number', f"NAWI-{datetime.now().year}-000001")
+        cert_number = session.get('cert_number') or f"NAWI-{datetime.now().year}-000001"
         session['cert_number'] = cert_number
         
     if not pdf_hash:
@@ -740,17 +748,25 @@ def download_certificate_by_id(session_id):
         disc_res = supabase.table('discrimination_results').select('*').eq('session_id', session_id).execute()
         
         repeatability = rep_res.data[0] if rep_res.data else {'status': 'FAIL'}
+        if not repeatability.get('status'):
+            repeatability['status'] = 'FAIL'
         eccentricity = ecc_res.data[0] if ecc_res.data else {'status': 'FAIL'}
+        if not eccentricity.get('status'):
+            eccentricity['status'] = 'FAIL'
         weighing = weigh_res.data[0] if weigh_res.data else {'status': 'FAIL'}
+        if not weighing.get('status'):
+            weighing['status'] = 'FAIL'
         discrimination = disc_res.data[0] if disc_res.data else {'status': 'FAIL'}
+        if not discrimination.get('status'):
+            discrimination['status'] = 'FAIL'
         if disc_res.data:
             discrimination['deviation'] = discrimination.get('actual_change', 'N/A')
             discrimination['mpe'] = discrimination.get('threshold_required', 'N/A')
             
-        overall_status = session_data.get('overall_status', 'FAIL')
+        overall_status = session_data.get('overall_status') or 'FAIL'
         completed_at = session_data.get('completed_at') or session_data.get('created_at', str(datetime.now()))
-        cert_number = session_data.get('cert_number', f"NAWI-{datetime.now().year}-000001")
-        pdf_hash = session_data.get('pdf_hash', 'Unknown')
+        cert_number = session_data.get('cert_number') or f"NAWI-{datetime.now().year}-000001"
+        pdf_hash = session_data.get('pdf_hash') or 'Unknown'
         
         base_url = os.environ.get('BASE_URL', request.host_url.rstrip('/'))
         

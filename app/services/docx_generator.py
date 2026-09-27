@@ -89,21 +89,22 @@ def generate_word_certificate(cert_number, instrument, repeatability,
         cells[0].text = row[0]
         cells[1].text = row[1]
         cells[2].text = row[2]
-        status_run = cells[3].paragraphs[0].add_run(row[3].upper())
+        status_run = cells[3].paragraphs[0].add_run((row[3] or 'FAIL').upper())
         status_run.bold = True
-        status_run.font.color.rgb = PASS_COLOR if row[3].upper() == 'PASS' else FAIL_COLOR
+        status_run.font.color.rgb = PASS_COLOR if (row[3] or 'FAIL').upper() == 'PASS' else FAIL_COLOR
 
     doc.add_paragraph()
 
     # SECTION 4: OVERALL STATUS BANNER
     banner = doc.add_paragraph()
     banner.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = banner.add_run(f"OVERALL STATUS: {overall_status.upper()}")
+    safe_overall = (overall_status or 'FAIL').upper()
+    run = banner.add_run(f"OVERALL STATUS: {safe_overall}")
     run.bold = True
     run.font.size = Pt(16)
-    run.font.color.rgb = PASS_COLOR if overall_status.upper() == 'PASS' else FAIL_COLOR
+    run.font.color.rgb = PASS_COLOR if safe_overall == 'PASS' else FAIL_COLOR
 
-    if overall_status.upper() != 'PASS':
+    if safe_overall != 'PASS':
         warn = doc.add_paragraph()
         warn.alignment = WD_ALIGN_PARAGRAPH.CENTER
         run = warn.add_run(

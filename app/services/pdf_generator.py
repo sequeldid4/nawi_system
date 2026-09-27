@@ -106,8 +106,8 @@ def generate_secure_certificate(cert_number, instrument, repeatability, eccentri
     ]
     
     def get_status_paragraph(status_text):
-        c = PASS_COLOR if status_text.upper() == 'PASS' else FAIL_COLOR
-        return Paragraph(f'<font color="{c.hexval()}"><b>{status_text.upper()}</b></font>', styles['Normal'])
+        c = PASS_COLOR if (status_text or 'FAIL').upper() == 'PASS' else FAIL_COLOR
+        return Paragraph(f'<font color="{c.hexval()}"><b>{(status_text or 'FAIL').upper()}</b></font>', styles['Normal'])
     
     # Eccentricity
     ecc_mpe = eccentricity.get('mpe', eccentricity.get('mpe_limit', 'N/A'))
@@ -147,9 +147,9 @@ def generate_secure_certificate(cert_number, instrument, repeatability, eccentri
     elements.append(Spacer(1, 25))
     
     # SECTION 4: OVERALL STATUS BANNER
-    banner_color = PASS_COLOR if overall_status.upper() == 'PASS' else FAIL_COLOR
+    banner_color = PASS_COLOR if (overall_status or 'FAIL').upper() == 'PASS' else FAIL_COLOR
     
-    banner_data = [[Paragraph(f'<font color="white"><b>OVERALL STATUS: {overall_status.upper()}</b></font>', ParagraphStyle(name='Banner', parent=styles['Normal'], alignment=1, fontSize=14))]]
+    banner_data = [[Paragraph(f'<font color="white"><b>OVERALL STATUS: {(overall_status or 'FAIL').upper()}</b></font>', ParagraphStyle(name='Banner', parent=styles['Normal'], alignment=1, fontSize=14))]]
     banner_table = Table(banner_data, colWidths=[500])
     banner_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (0, 0), banner_color),
@@ -161,7 +161,7 @@ def generate_secure_certificate(cert_number, instrument, repeatability, eccentri
     
     elements.append(banner_table)
     
-    if overall_status.upper() != 'PASS':
+    if (overall_status or 'FAIL').upper() != 'PASS':
         elements.append(Spacer(1, 5))
         fail_warning = ParagraphStyle(
             name='FailWarning',
